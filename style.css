@@ -38,9 +38,13 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background: var(--primary-color);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     z-index: 1000;
     padding: 1rem 0;
+    transition: all 0.3s ease;
 }
 
 .nav {
@@ -55,7 +59,7 @@ body {
 .logo {
     font-size: 1.5rem;
     font-weight: 700;
-    color: white;
+    color: var(--primary-color);
 }
 
 .nav-menu {
@@ -65,29 +69,31 @@ body {
 }
 
 .nav-menu a {
-    color: white;
+    color: var(--text-dark);
     text-decoration: none;
     font-weight: 500;
-    transition: opacity 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .nav-menu a:hover {
+    color: var(--primary-color);
     opacity: 0.8;
 }
 
 .btn-register {
-    background: white;
-    color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
     padding: 0.75rem 1.5rem;
     border-radius: 25px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 77, 133, 0.3);
 }
 
 .btn-register:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 25px rgba(255, 77, 133, 0.4);
 }
 
 /* Hero Section */
