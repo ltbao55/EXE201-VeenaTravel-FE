@@ -107,6 +107,13 @@ function showChatPage() {
     document.querySelector('.services').style.display = 'none';
     document.querySelector('.discovery-section').style.display = 'none';
     document.querySelector('.footer').style.display = 'none';
+
+    // Initialize map when entering chat page
+    setTimeout(() => {
+        if (typeof switchTab === 'function') {
+            switchTab('chat');
+        }
+    }, 100);
 }
 
 function showHomePage() {

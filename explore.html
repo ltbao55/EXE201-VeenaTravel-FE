@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khám phá - Travel Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="explore.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <!-- Navigation Tabs -->
+    <div class="chat-tabs">
+        <button class="tab-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-comments"></i>
+            Chat
+        </button>
+        <button class="tab-btn" onclick="window.location.href='map.html'">
+            <i class="fas fa-map"></i>
+            Lịch trình
+        </button>
+        <button class="tab-btn active" onclick="window.location.href='explore.html'">
+            <i class="fas fa-compass"></i>
+            Khám phá
+        </button>
+        <button class="tab-btn" onclick="window.location.href='profile.html'">
+            <i class="fas fa-user"></i>
+            Hồ sơ
+        </button>
+    </div>
+
+    <div class="explore-container">
+        <!-- Sidebar -->
+        <div class="explore-sidebar">
+            <div class="location-header">
+                <h2>Thành phố Hồ Chí Minh</h2>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm địa điểm">
+                </div>
+            </div>
+
+            <div class="category-filters">
+                <button class="filter-btn active" data-category="all">Quan điểm</button>
+                <button class="filter-btn" data-category="restaurant">Nhà hàng</button>
+                <button class="filter-btn" data-category="hotel">Khách sạn</button>
+                <button class="filter-btn" data-category="shopping">Mua sắm</button>
+                <button class="filter-btn" data-category="culture">Văn hóa</button>
+            </div>
+
+            <div class="places-grid">
+                <div class="place-card" data-category="culture" data-lat="10.7769" data-lng="106.7009">
+                    <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=300&h=200&fit=crop" alt="Bưu điện Thành Phố">
+                    <div class="place-info">
+                        <h3>Bưu điện Thành Phố</h3>
+                        <p>Kiến trúc Pháp cổ điển</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="shopping" data-lat="10.7829" data-lng="106.6989">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&h=200&fit=crop" alt="Bitexco">
+                    <div class="place-info">
+                        <h3>Bitexco</h3>
+                        <p>Tòa nhà cao nhất TPHCM</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="restaurant" data-lat="10.7756" data-lng="106.7019">
+                    <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&h=200&fit=crop" alt="Nhà hàng Ăn Đô">
+                    <div class="place-info">
+                        <h3>Nhà hàng Ăn Đô</h3>
+                        <p>Banana Leaf Sài Gòn</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="culture" data-lat="10.7784" data-lng="106.6958">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop" alt="Đài quan sát Sài Gòn">
+                    <div class="place-info">
+                        <h3>Đài quan sát Sài Gòn</h3>
+                        <p>View toàn cảnh thành phố</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="shopping" data-lat="10.7723" data-lng="106.6989">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&h=200&fit=crop" alt="Bảo tàng Sài Gòn">
+                    <div class="place-info">
+                        <h3>Bảo tàng Sài Gòn</h3>
+                        <p>Lịch sử và văn hóa</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="shopping" data-lat="10.7699" data-lng="106.6937">
+                    <img src="https://images.unsplash.com/photo-1520637836862-4d197d17c90a?w=300&h=200&fit=crop" alt="Bến Thành Đông">
+                    <div class="place-info">
+                        <h3>Bến Thành Đông</h3>
+                        <p>Chợ truyền thống</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="culture" data-lat="10.7795" data-lng="106.6946">
+                    <img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=300&h=200&fit=crop" alt="Dinh Độc Lập">
+                    <div class="place-info">
+                        <h3>Dinh Độc Lập</h3>
+                        <p>Di tích lịch sử</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="culture" data-lat="10.7798" data-lng="106.6951">
+                    <img src="https://images.unsplash.com/photo-1520637836862-4d197d17c90a?w=300&h=200&fit=crop" alt="Nhà thờ Đức Bà">
+                    <div class="place-info">
+                        <h3>Nhà thờ Đức Bà</h3>
+                        <p>Kiến trúc Gothic</p>
+                    </div>
+                </div>
+
+                <div class="place-card" data-category="culture" data-lat="10.7699" data-lng="106.6937">
+                    <img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=300&h=200&fit=crop" alt="Chùa Jade Emperor">
+                    <div class="place-info">
+                        <h3>Chùa Jade Emperor</h3>
+                        <p>Chùa cổ nổi tiếng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="explore-map"></div>
+        </div>
+    </div>
+
+    <script src="explore.js"></script>
+</body>
+</html>

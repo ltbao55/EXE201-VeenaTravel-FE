@@ -1430,6 +1430,7 @@ body {
 .map-container {
     flex: 1;
     position: relative;
+    min-width: 400px;
 }
 
 .map-view {
@@ -1441,6 +1442,14 @@ body {
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(255, 77, 133, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#chat-map {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
 }
 
 .map-placeholder {
