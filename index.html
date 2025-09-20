@@ -107,6 +107,95 @@
         </div>
     </section>
 
+    <!-- Services Section -->
+    <section class="services-section">
+        <div class="container">
+            <h2 class="services-title">Mọi thông tin - một nơi duy nhất</h2>
+            <div class="services-grid">
+                <div class="service-card hotel">
+                    <div class="service-icon">🏨</div>
+                    <h3>Khách sạn</h3>
+                    <p>Tìm kiếm và đặt phòng khách sạn tốt nhất</p>
+                    <div class="service-image">
+                        <!-- Hotel room image placeholder -->
+                    </div>
+                </div>
+                <div class="service-card rental">
+                    <div class="service-icon">🚗</div>
+                    <h3>Thuê xe</h3>
+                    <p>Thuê xe du lịch tiện lợi và an toàn</p>
+                    <div class="service-image">
+                        <!-- Car rental image placeholder -->
+                    </div>
+                </div>
+                <div class="service-card flight">
+                    <div class="service-icon">✈️</div>
+                    <h3>Chuyến bay</h3>
+                    <p>Đặt vé máy bay giá tốt nhất</p>
+                    <div class="service-image">
+                        <!-- Flight image placeholder -->
+                    </div>
+                </div>
+                <div class="service-card restaurant">
+                    <div class="service-icon">🍽️</div>
+                    <h3>Nhà hàng</h3>
+                    <p>Khám phá ẩm thực địa phương đặc sắc</p>
+                    <div class="service-image">
+                        <!-- Restaurant image placeholder -->
+                    </div>
+                </div>
+                <div class="service-card tour">
+                    <div class="service-icon">🗺️</div>
+                    <h3>Tour du lịch</h3>
+                    <p>Trải nghiệm tour du lịch chất lượng cao</p>
+                    <div class="service-image">
+                        <!-- Tour image placeholder -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Discovery Sections -->
+    <section class="discovery-section">
+        <div class="container">
+            <!-- Large Discovery Card -->
+            <div class="large-discovery-card">
+                <div class="discovery-content">
+                    <h2>Khám phá phong cách du lịch của bạn</h2>
+                    <p>Tìm hiểu những điểm đến phù hợp với sở thích và phong cách du lịch riêng của bạn</p>
+                    <button class="btn btn-primary">Làm bài test ngay</button>
+                </div>
+                <div class="discovery-image">
+                    <!-- Rice terrace landscape image placeholder -->
+                </div>
+            </div>
+
+            <!-- Promotional Banners -->
+            <div class="promo-banners">
+                <div class="promo-banner vietnam">
+                    <div class="promo-content">
+                        <h3>DISCOVER VIETNAM</h3>
+                        <h4>Timeless Charm Awaits</h4>
+                        <p>Khám phá vẻ đẹp bất tận của đất nước Việt Nam</p>
+                        <button class="btn btn-outline">Khám phá</button>
+                    </div>
+                    <div class="promo-image">
+                        <!-- Vietnam landscape image placeholder -->
+                    </div>
+                </div>
+                <div class="promo-banner travel-app">
+                    <div class="promo-content">
+                        <span class="app-badge">travel</span>
+                        <h3>Veena</h3>
+                        <p>Ứng dụng du lịch thông minh</p>
+                        <p>Trải nghiệm du lịch hoàn hảo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -149,6 +238,77 @@
             </div>
         </div>
     </footer>
+
+    <!-- Login/Register Modals -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form active">
+                <h2>Chào mừng đến Veena Travel!</h2>
+                <form>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Mật khẩu" required>
+                    </div>
+                    <button type="submit" class="btn-auth">Đăng nhập</button>
+                </form>
+
+                <div class="divider">
+                    <span>hoặc</span>
+                </div>
+
+                <button class="btn-google">
+                    <span class="google-icon">G</span>
+                    Tiếp tục với Google
+                </button>
+
+                <p class="auth-switch">
+                    Chưa có tài khoản? <a href="#" onclick="switchToRegister()">Đăng ký ngay</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form">
+                <h2>Chào mừng đến Veena Travel!</h2>
+                <form>
+                    <div class="form-group">
+                        <input type="text" placeholder="Họ và tên" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Mật khẩu" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Xác nhận mật khẩu" required>
+                    </div>
+                    <button type="submit" class="btn-auth">Đăng ký</button>
+                </form>
+
+                <div class="divider">
+                    <span>hoặc</span>
+                </div>
+
+                <button class="btn-google">
+                    <span class="google-icon">G</span>
+                    Tiếp tục với Google
+                </button>
+
+                <div class="premium-section">
+                    <button class="btn-premium">Đăng ký Premium</button>
+                </div>
+
+                <p class="auth-switch">
+                    Đã có tài khoản? <a href="#" onclick="switchToLogin()">Đăng nhập</a>
+                </p>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
