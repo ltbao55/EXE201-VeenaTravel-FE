@@ -29,30 +29,42 @@ function switchTab(tabName) {
         // Show both chat and map
         chatContent.style.display = 'flex';
         mapContainer.style.display = 'block';
-        // Initialize map if not already done
+        // Initialize map if not already done or refresh size
         if (!chatMap) {
             setTimeout(() => {
                 initChatMap();
+            }, 200);
+        } else {
+            setTimeout(() => {
+                chatMap.invalidateSize();
             }, 100);
         }
     } else if (tabName === 'map') {
         // Show only map (fullscreen)
         chatContent.style.display = 'none';
         mapContainer.style.display = 'block';
-        // Initialize map if not already done
+        // Initialize map if not already done or refresh size
         if (!chatMap) {
             setTimeout(() => {
                 initChatMap();
+            }, 200);
+        } else {
+            setTimeout(() => {
+                chatMap.invalidateSize();
             }, 100);
         }
     } else {
         // For other tabs, show chat content with map
         chatContent.style.display = 'flex';
         mapContainer.style.display = 'block';
-        // Initialize map if not already done
+        // Initialize map if not already done or refresh size
         if (!chatMap) {
             setTimeout(() => {
                 initChatMap();
+            }, 200);
+        } else {
+            setTimeout(() => {
+                chatMap.invalidateSize();
             }, 100);
         }
     }
@@ -60,14 +72,34 @@ function switchTab(tabName) {
 
 // Initialize chat map
 function initChatMap() {
+    // Check if map already exists
+    if (chatMap) {
+        chatMap.remove();
+        chatMap = null;
+    }
+
+    // Wait for container to be visible
+    const mapContainer = document.getElementById('chat-map');
+    if (!mapContainer || mapContainer.offsetWidth === 0) {
+        setTimeout(() => initChatMap(), 100);
+        return;
+    }
+
     // Center on Ho Chi Minh City
     chatMap = L.map('chat-map').setView([10.7769, 106.6951], 13);
-    
+
     // Add tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(chatMap);
-    
+
+    // Force map to recalculate size
+    setTimeout(() => {
+        if (chatMap) {
+            chatMap.invalidateSize();
+        }
+    }, 100);
+
     // Add sample markers for popular destinations
     addChatMapMarkers();
 }
