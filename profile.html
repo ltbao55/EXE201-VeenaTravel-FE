@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ - Travel Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Tabs -->
+    <div class="chat-tabs">
+        <button class="tab-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-comments"></i>
+            Chat
+        </button>
+        <button class="tab-btn" onclick="window.location.href='map.html'">
+            <i class="fas fa-map"></i>
+            Bản đồ
+        </button>
+        <button class="tab-btn" onclick="window.location.href='itinerary.html'">
+            <i class="fas fa-route"></i>
+            Lịch trình
+        </button>
+        <button class="tab-btn active">
+            <i class="fas fa-user"></i>
+            Thời tiết
+        </button>
+    </div>
+
+    <!-- Profile Container -->
+    <div class="profile-container">
+        <!-- Sidebar -->
+        <div class="profile-sidebar">
+            <div class="sidebar-item active" data-section="profile">
+                <i class="fas fa-user"></i>
+                Chỉnh sửa hồ sơ
+            </div>
+            <div class="sidebar-item" data-section="account">
+                <i class="fas fa-cog"></i>
+                Tài khoản
+            </div>
+            <div class="sidebar-item" data-section="preferences">
+                <i class="fas fa-heart"></i>
+                Sở thích du lịch
+            </div>
+            <div class="sidebar-item" data-section="notifications">
+                <i class="fas fa-bell"></i>
+                Cài đặt thông báo
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="profile-main">
+            <!-- Profile Section -->
+            <div class="profile-section active" id="profile-section">
+                <div class="profile-header">
+                    <h2>Hồ sơ</h2>
+                    <div class="profile-avatar">
+                        <div class="avatar-circle">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="avatar-info">
+                            <span class="traveler-badge">
+                                <i class="fas fa-plane"></i>
+                                @traveler
+                            </span>
+                            <p class="avatar-subtitle">(Tên hiển thị của bạn)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-form">
+                    <div class="form-group">
+                        <label for="name">Tên</label>
+                        <input type="text" id="name" placeholder="Nhập tên của bạn">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="surname">Họ</label>
+                        <input type="text" id="surname" placeholder="Nhập họ của bạn">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Tên người dùng</label>
+                        <input type="text" id="username" placeholder="Nhập tên người dùng">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="website">Website</label>
+                        <input type="url" id="website" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio">Mô tả</label>
+                        <textarea id="bio" rows="4" placeholder="Viết một chút về bản thân..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn-save">
+                            <i class="fas fa-save"></i>
+                            Lưu thay đổi
+                        </button>
+                        <button class="btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Section -->
+            <div class="profile-section" id="account-section">
+                <div class="profile-header">
+                    <h2>Tài khoản</h2>
+                </div>
+                <div class="account-settings">
+                    <div class="setting-item">
+                        <h3>Đổi mật khẩu</h3>
+                        <p>Cập nhật mật khẩu để bảo mật tài khoản</p>
+                        <button class="btn-secondary">Đổi mật khẩu</button>
+                    </div>
+                    <div class="setting-item">
+                        <h3>Xóa tài khoản</h3>
+                        <p>Xóa vĩnh viễn tài khoản và tất cả dữ liệu</p>
+                        <button class="btn-danger">Xóa tài khoản</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences Section -->
+            <div class="profile-section" id="preferences-section">
+                <div class="profile-header">
+                    <h2>Sở thích du lịch</h2>
+                </div>
+                <div class="preferences-content">
+                    <div class="preference-group">
+                        <h3>Loại hình du lịch yêu thích</h3>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox"> Nghỉ dưỡng</label>
+                            <label><input type="checkbox"> Khám phá văn hóa</label>
+                            <label><input type="checkbox"> Phiêu lưu</label>
+                            <label><input type="checkbox"> Ẩm thực</label>
+                        </div>
+                    </div>
+                    <div class="preference-group">
+                        <h3>Ngân sách ưa thích</h3>
+                        <select class="form-select">
+                            <option>Tiết kiệm</option>
+                            <option>Trung bình</option>
+                            <option>Cao cấp</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="profile-section" id="notifications-section">
+                <div class="profile-header">
+                    <h2>Cài đặt thông báo</h2>
+                </div>
+                <div class="notifications-content">
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h3>Thông báo email</h3>
+                            <p>Nhận thông báo về chuyến đi qua email</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <h3>Thông báo đẩy</h3>
+                            <p>Nhận thông báo trên thiết bị</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="profile.js"></script>
+</body>
+</html>

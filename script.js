@@ -98,3 +98,77 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('VeenaTravel website loaded successfully!');
 });
+
+// Page Navigation Functions
+function showChatPage() {
+    document.getElementById('chatPage').style.display = 'block';
+    document.querySelector('.header').style.display = 'none';
+    document.querySelector('.hero').style.display = 'none';
+    document.querySelector('.services').style.display = 'none';
+    document.querySelector('.discovery-section').style.display = 'none';
+    document.querySelector('.footer').style.display = 'none';
+}
+
+function showHomePage() {
+    document.getElementById('chatPage').style.display = 'none';
+    document.querySelector('.header').style.display = 'block';
+    document.querySelector('.hero').style.display = 'block';
+    document.querySelector('.services').style.display = 'block';
+    document.querySelector('.discovery-section').style.display = 'block';
+    document.querySelector('.footer').style.display = 'block';
+}
+
+// Chat Functions
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+
+    if (message) {
+        // Add user message to chat
+        addUserMessage(message);
+        input.value = '';
+
+        // Simulate bot response
+        setTimeout(() => {
+            addBotMessage("Cảm ơn bạn đã gửi tin nhắn! Tôi đang xử lý yêu cầu của bạn...");
+        }, 1000);
+    }
+}
+
+function addUserMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user-message';
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#2D3748"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="message-content">
+            <p>${message}</p>
+        </div>
+    `;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function addBotMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message bot-message';
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#FF4D85"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="message-content">
+            <p>${message}</p>
+        </div>
+    `;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
