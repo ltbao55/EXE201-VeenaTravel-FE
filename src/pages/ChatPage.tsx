@@ -1,35 +1,39 @@
-import React, { useState } from 'react';
-import '../styles/ChatPage.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles/ChatPage.css";
 
 const ChatPage: React.FC = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([
     {
       id: 1,
-      type: 'bot',
-      content: 'Tôi muốn đi du lịch thành phố Hồ Chí Minh đến Đà Lạt 3 ngày 2 đêm chơi gì ? 3 đâu? Du lịch gia đình 4 người 2 người lớn, 2 trẻ em, 1 con thú cưng, ngân sách khoảng 15 triệu'
+      type: "bot",
+      content:
+        "Tôi muốn đi du lịch thành phố Hồ Chí Minh đến Đà Lạt 3 ngày 2 đêm chơi gì ? 3 đâu? Du lịch gia đình 4 người 2 người lớn, 2 trẻ em, 1 con thú cưng, ngân sách khoảng 15 triệu",
     },
     {
       id: 2,
-      type: 'bot',
-      content: 'Cảm ơn bạn đã chia sẻ thông tin! Tôi sẽ tạo ra hành trình cụ của bạn. Gia đình 4 người lớn 2 trẻ em cùng một chú mèo muốn đi du lịch từ Thành phố Hồ Chí Minh đến Đà Lạt trong 3 ngày 2 đêm, với ngân sách khoảng 15 triệu đồng và thú cưng đi cùng. Hãy để tôi tạo một kế hoạch chi tiết cho chuyến đi này.'
-    }
+      type: "bot",
+      content:
+        "Cảm ơn bạn đã chia sẻ thông tin! Tôi sẽ tạo ra hành trình cụ của bạn. Gia đình 4 người lớn 2 trẻ em cùng một chú mèo muốn đi du lịch từ Thành phố Hồ Chí Minh đến Đà Lạt trong 3 ngày 2 đêm, với ngân sách khoảng 15 triệu đồng và thú cưng đi cùng. Hãy để tôi tạo một kế hoạch chi tiết cho chuyến đi này.",
+    },
   ]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
 
   const handleSendMessage = () => {
     if (inputValue.trim()) {
       const newMessage = {
         id: messages.length + 1,
-        type: 'user',
-        content: inputValue
+        type: "user",
+        content: inputValue,
       };
       setMessages([...messages, newMessage]);
-      setInputValue('');
+      setInputValue("");
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
       handleSendMessage();
     }
   };
@@ -63,6 +67,17 @@ const ChatPage: React.FC = () => {
               </svg>
               <span>veena travel.</span>
             </div>
+            <button className="back-btn" onClick={() => navigate("/")}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M19 12H5M12 19L5 12L12 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
 
           <div className="sidebar-menu">
@@ -197,7 +212,10 @@ const ChatPage: React.FC = () => {
           <div className="chat-content">
             <div className="chat-messages">
               {messages.map((message) => (
-                <div key={message.id} className={`message ${message.type}-message`}>
+                <div
+                  key={message.id}
+                  className={`message ${message.type}-message`}
+                >
                   <div className="message-avatar">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <circle cx="12" cy="12" r="10" fill="#FF4D85" />
@@ -215,12 +233,15 @@ const ChatPage: React.FC = () => {
                     {message.id === 2 && (
                       <div className="itinerary-section">
                         <h4>Ngày 1: Khởi hành & Khám phá trung tâm Đà Lạt</h4>
-                        <p><strong>Sáng:</strong></p>
                         <p>
-                          Khởi hành từ Thành phố Hồ Chí Minh đến Đà Lạt. Bạn có thể
-                          nghỉ ngơi tại - Dalat Edensee Lake Resort & Spa - nơi chào
-                          đón thú cưng và có không gian rộng rãi cho trẻ nhỏ vui
-                          chơi. Đăng ký phòng và nghỉ ngơi sau chuyến đi dài.
+                          <strong>Sáng:</strong>
+                        </p>
+                        <p>
+                          Khởi hành từ Thành phố Hồ Chí Minh đến Đà Lạt. Bạn có
+                          thể nghỉ ngơi tại - Dalat Edensee Lake Resort & Spa -
+                          nơi chào đón thú cưng và có không gian rộng rãi cho
+                          trẻ nhỏ vui chơi. Đăng ký phòng và nghỉ ngơi sau
+                          chuyến đi dài.
                         </p>
                       </div>
                     )}
@@ -231,12 +252,12 @@ const ChatPage: React.FC = () => {
 
             <div className="chat-input-container">
               <div className="chat-input">
-                <input 
-                  type="text" 
-                  placeholder="Hỏi gì đó..." 
+                <input
+                  type="text"
+                  placeholder="Hỏi gì đó..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                 />
                 <button className="send-btn" onClick={handleSendMessage}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
