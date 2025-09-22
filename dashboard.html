@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VeenaTravel - Dashboard Quản Trị</title>
+    <link rel="stylesheet" href="dashboard.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <i class="fas fa-plane"></i>
+            <span>VeenaTravel</span>
+          </div>
+          <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="nav-item active">
+              <a href="#overview" class="nav-link" data-page="overview">
+                <i class="fas fa-chart-pie"></i>
+                <span>Tổng Quan</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#revenue" class="nav-link" data-page="revenue">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Doanh Thu</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#users" class="nav-link" data-page="users">
+                <i class="fas fa-users"></i>
+                <span>Người Dùng</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#transactions" class="nav-link" data-page="transactions">
+                <i class="fas fa-credit-card"></i>
+                <span>Giao Dịch</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#bookings" class="nav-link" data-page="bookings">
+                <i class="fas fa-calendar-check"></i>
+                <span>Đặt Chỗ</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#analytics" class="nav-link" data-page="analytics">
+                <i class="fas fa-chart-line"></i>
+                <span>Phân Tích</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#settings" class="nav-link" data-page="settings">
+                <i class="fas fa-cog"></i>
+                <span>Cài Đặt</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-profile">
+            <div class="user-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+              <span class="user-name">Admin</span>
+              <span class="user-role">Quản trị viên</span>
+            </div>
+          </div>
+          <button class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <header class="dashboard-header">
+          <div class="header-left">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">Tổng Quan</h1>
+          </div>
+
+          <div class="header-right">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Tìm kiếm..." />
+            </div>
+
+            <div class="header-actions">
+              <button class="notification-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+              </button>
+
+              <div class="date-range-picker">
+                <i class="fas fa-calendar"></i>
+                <select id="dateRange">
+                  <option value="today">Hôm nay</option>
+                  <option value="week">7 ngày qua</option>
+                  <option value="month" selected>30 ngày qua</option>
+                  <option value="quarter">3 tháng qua</option>
+                  <option value="year">1 năm qua</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+          <!-- Overview Page -->
+          <div class="page-content active" id="overview-page">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+              <div class="stat-card revenue">
+                <div class="stat-icon">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Tổng Doanh Thu</h3>
+                  <p class="stat-value">2,450,000,000 VNĐ</p>
+                  <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +12.5%
+                  </span>
+                </div>
+              </div>
+
+              <div class="stat-card users">
+                <div class="stat-icon">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Tổng Người Dùng</h3>
+                  <p class="stat-value">15,847</p>
+                  <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +8.2%
+                  </span>
+                </div>
+              </div>
+
+              <div class="stat-card transactions">
+                <div class="stat-icon">
+                  <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Giao Dịch</h3>
+                  <p class="stat-value">3,256</p>
+                  <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +15.3%
+                  </span>
+                </div>
+              </div>
+
+              <div class="stat-card bookings">
+                <div class="stat-icon">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Đặt Chỗ</h3>
+                  <p class="stat-value">1,892</p>
+                  <span class="stat-change negative">
+                    <i class="fas fa-arrow-down"></i> -2.1%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h3>Doanh Thu Theo Tháng</h3>
+                  <div class="chart-controls">
+                    <button class="chart-btn active" data-period="month">
+                      Tháng
+                    </button>
+                    <button class="chart-btn" data-period="quarter">Quý</button>
+                    <button class="chart-btn" data-period="year">Năm</button>
+                  </div>
+                </div>
+                <canvas id="revenueChart"></canvas>
+              </div>
+
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h3>Phân Bố Dịch Vụ</h3>
+                </div>
+                <canvas id="serviceChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+              <div class="activity-header">
+                <h3>Hoạt Động Gần Đây</h3>
+                <a href="#" class="view-all">Xem tất cả</a>
+              </div>
+              <div class="activity-list">
+                <div class="activity-item">
+                  <div class="activity-icon booking">
+                    <i class="fas fa-calendar-plus"></i>
+                  </div>
+                  <div class="activity-content">
+                    <p><strong>Nguyễn Văn A</strong> đã đặt tour Hạ Long Bay</p>
+                    <span class="activity-time">5 phút trước</span>
+                  </div>
+                  <div class="activity-amount">+15,000,000 VNĐ</div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon user">
+                    <i class="fas fa-user-plus"></i>
+                  </div>
+                  <div class="activity-content">
+                    <p>Người dùng mới <strong>Trần Thị B</strong> đã đăng ký</p>
+                    <span class="activity-time">12 phút trước</span>
+                  </div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon payment">
+                    <i class="fas fa-credit-card"></i>
+                  </div>
+                  <div class="activity-content">
+                    <p>
+                      <strong>Lê Văn C</strong> đã thanh toán đặt phòng khách
+                      sạn
+                    </p>
+                    <span class="activity-time">25 phút trước</span>
+                  </div>
+                  <div class="activity-amount">+8,500,000 VNĐ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revenue Management Page -->
+          <div class="page-content" id="revenue-page">
+            <!-- Revenue Stats -->
+            <div class="revenue-stats">
+              <div class="revenue-card total">
+                <div class="revenue-icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="revenue-info">
+                  <h3>Tổng Doanh Thu</h3>
+                  <p class="revenue-amount">2,450,000,000 VNĐ</p>
+                  <span class="revenue-period">30 ngày qua</span>
+                </div>
+                <div class="revenue-trend positive">
+                  <i class="fas fa-arrow-up"></i>
+                  <span>+12.5%</span>
+                </div>
+              </div>
+
+              <div class="revenue-card monthly">
+                <div class="revenue-icon">
+                  <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="revenue-info">
+                  <h3>Doanh Thu Tháng Này</h3>
+                  <p class="revenue-amount">450,000,000 VNĐ</p>
+                  <span class="revenue-period">Tháng 12/2024</span>
+                </div>
+                <div class="revenue-trend positive">
+                  <i class="fas fa-arrow-up"></i>
+                  <span>+8.3%</span>
+                </div>
+              </div>
+
+              <div class="revenue-card average">
+                <div class="revenue-icon">
+                  <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="revenue-info">
+                  <h3>Trung Bình/Ngày</h3>
+                  <p class="revenue-amount">15,000,000 VNĐ</p>
+                  <span class="revenue-period">30 ngày qua</span>
+                </div>
+                <div class="revenue-trend negative">
+                  <i class="fas fa-arrow-down"></i>
+                  <span>-2.1%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Revenue Filters -->
+            <div class="revenue-filters">
+              <div class="filter-group">
+                <label>Khoảng thời gian:</label>
+                <select class="filter-select" id="revenueTimeRange">
+                  <option value="7">7 ngày qua</option>
+                  <option value="30" selected>30 ngày qua</option>
+                  <option value="90">3 tháng qua</option>
+                  <option value="365">1 năm qua</option>
+                  <option value="custom">Tùy chọn</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label>Dịch vụ:</label>
+                <select class="filter-select" id="revenueService">
+                  <option value="all">Tất cả dịch vụ</option>
+                  <option value="tour">Tour du lịch</option>
+                  <option value="hotel">Khách sạn</option>
+                  <option value="flight">Vé máy bay</option>
+                  <option value="restaurant">Nhà hàng</option>
+                  <option value="rental">Thuê xe</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label>Khu vực:</label>
+                <select class="filter-select" id="revenueRegion">
+                  <option value="all">Toàn quốc</option>
+                  <option value="north">Miền Bắc</option>
+                  <option value="central">Miền Trung</option>
+                  <option value="south">Miền Nam</option>
+                </select>
+              </div>
+
+              <button class="filter-btn export-btn">
+                <i class="fas fa-download"></i>
+                Xuất báo cáo
+              </button>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="revenue-chart-container">
+              <div class="chart-header">
+                <h3>Biểu Đồ Doanh Thu</h3>
+                <div class="chart-type-selector">
+                  <button class="chart-type-btn active" data-type="line">
+                    <i class="fas fa-chart-line"></i>
+                  </button>
+                  <button class="chart-type-btn" data-type="bar">
+                    <i class="fas fa-chart-bar"></i>
+                  </button>
+                  <button class="chart-type-btn" data-type="area">
+                    <i class="fas fa-chart-area"></i>
+                  </button>
+                </div>
+              </div>
+              <canvas id="detailedRevenueChart"></canvas>
+            </div>
+
+            <!-- Revenue Table -->
+            <div class="revenue-table-container">
+              <div class="table-header">
+                <h3>Chi Tiết Doanh Thu</h3>
+                <div class="table-actions">
+                  <div class="search-table">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm..." />
+                  </div>
+                  <button class="table-btn">
+                    <i class="fas fa-filter"></i>
+                    Lọc
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-wrapper">
+                <table class="revenue-table">
+                  <thead>
+                    <tr>
+                      <th>Ngày</th>
+                      <th>Dịch vụ</th>
+                      <th>Số giao dịch</th>
+                      <th>Doanh thu</th>
+                      <th>Tăng trưởng</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>22/12/2024</td>
+                      <td><span class="service-badge tour">Tour</span></td>
+                      <td>45</td>
+                      <td class="revenue-cell">18,500,000 VNĐ</td>
+                      <td class="growth-cell positive">+15.2%</td>
+                      <td>
+                        <button class="action-btn view">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>21/12/2024</td>
+                      <td>
+                        <span class="service-badge hotel">Khách sạn</span>
+                      </td>
+                      <td>32</td>
+                      <td class="revenue-cell">12,800,000 VNĐ</td>
+                      <td class="growth-cell positive">+8.7%</td>
+                      <td>
+                        <button class="action-btn view">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>20/12/2024</td>
+                      <td>
+                        <span class="service-badge flight">Vé máy bay</span>
+                      </td>
+                      <td>28</td>
+                      <td class="revenue-cell">16,200,000 VNĐ</td>
+                      <td class="growth-cell negative">-3.1%</td>
+                      <td>
+                        <button class="action-btn view">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="table-pagination">
+                <div class="pagination-info">
+                  Hiển thị 1-10 trong 156 kết quả
+                </div>
+                <div class="pagination-controls">
+                  <button class="pagination-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <button class="pagination-btn active">1</button>
+                  <button class="pagination-btn">2</button>
+                  <button class="pagination-btn">3</button>
+                  <button class="pagination-btn">...</button>
+                  <button class="pagination-btn">16</button>
+                  <button class="pagination-btn">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Users Management Page -->
+          <div class="page-content" id="users-page">
+            <!-- Users Stats -->
+            <div class="users-stats">
+              <div class="user-stat-card total-users">
+                <div class="stat-icon">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Tổng Người Dùng</h3>
+                  <p class="stat-value">15,847</p>
+                  <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +8.2%
+                  </span>
+                </div>
+              </div>
+
+              <div class="user-stat-card active-users">
+                <div class="stat-icon">
+                  <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Người Dùng Hoạt Động</h3>
+                  <p class="stat-value">12,456</p>
+                  <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +5.7%
+                  </span>
+                </div>
+              </div>
+
+              <div class="user-stat-card new-users">
+                <div class="stat-icon">
+                  <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Người Dùng Mới</h3>
+                  <p class="stat-value">234</p>
+                  <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +12.3%
+                  </span>
+                </div>
+              </div>
+
+              <div class="user-stat-card premium-users">
+                <div class="stat-icon">
+                  <i class="fas fa-crown"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>Người Dùng Premium</h3>
+                  <p class="stat-value">1,892</p>
+                  <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +15.8%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Users Filters and Actions -->
+            <div class="users-controls">
+              <div class="users-filters">
+                <div class="filter-group">
+                  <select class="filter-select" id="userStatus">
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="active">Hoạt động</option>
+                    <option value="inactive">Không hoạt động</option>
+                    <option value="banned">Bị cấm</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <select class="filter-select" id="userType">
+                    <option value="all">Tất cả loại</option>
+                    <option value="regular">Thường</option>
+                    <option value="premium">Premium</option>
+                    <option value="vip">VIP</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <select class="filter-select" id="userRegion">
+                    <option value="all">Tất cả khu vực</option>
+                    <option value="north">Miền Bắc</option>
+                    <option value="central">Miền Trung</option>
+                    <option value="south">Miền Nam</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="users-actions">
+                <button class="action-btn-primary">
+                  <i class="fas fa-user-plus"></i>
+                  Thêm người dùng
+                </button>
+                <button class="action-btn-secondary">
+                  <i class="fas fa-download"></i>
+                  Xuất danh sách
+                </button>
+              </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="users-table-container">
+              <div class="table-header">
+                <h3>Danh Sách Người Dùng</h3>
+                <div class="table-actions">
+                  <div class="search-table">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm người dùng..." />
+                  </div>
+                  <div class="table-view-options">
+                    <button class="view-btn active" data-view="table">
+                      <i class="fas fa-table"></i>
+                    </button>
+                    <button class="view-btn" data-view="grid">
+                      <i class="fas fa-th"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-wrapper">
+                <table class="users-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        <input type="checkbox" class="select-all" />
+                      </th>
+                      <th>Người dùng</th>
+                      <th>Email</th>
+                      <th>Loại tài khoản</th>
+                      <th>Trạng thái</th>
+                      <th>Ngày tham gia</th>
+                      <th>Lần cuối hoạt động</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <input type="checkbox" class="select-user" />
+                      </td>
+                      <td>
+                        <div class="user-info-cell">
+                          <div class="user-avatar">
+                            <img
+                              src="https://i.pravatar.cc/40?img=1"
+                              alt="Avatar"
+                            />
+                          </div>
+                          <div class="user-details">
+                            <span class="user-name">Nguyễn Văn An</span>
+                            <span class="user-id">#USR001</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>nguyen.van.an@email.com</td>
+                      <td>
+                        <span class="user-type-badge premium">Premium</span>
+                      </td>
+                      <td>
+                        <span class="status-badge active">Hoạt động</span>
+                      </td>
+                      <td>15/03/2024</td>
+                      <td>2 giờ trước</td>
+                      <td>
+                        <div class="action-buttons">
+                          <button class="action-btn view" title="Xem chi tiết">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                          <button class="action-btn edit" title="Chỉnh sửa">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button
+                            class="action-btn message"
+                            title="Gửi tin nhắn"
+                          >
+                            <i class="fas fa-envelope"></i>
+                          </button>
+                          <button class="action-btn more" title="Thêm">
+                            <i class="fas fa-ellipsis-v"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="table-pagination">
+                <div class="pagination-info">
+                  Hiển thị 1-3 trong 15,847 kết quả
+                </div>
+                <div class="pagination-controls">
+                  <button class="pagination-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <button class="pagination-btn active">1</button>
+                  <button class="pagination-btn">2</button>
+                  <button class="pagination-btn">3</button>
+                  <button class="pagination-btn">...</button>
+                  <button class="pagination-btn">1585</button>
+                  <button class="pagination-btn">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="page-content" id="transactions-page">
+            <h2>Quản Lý Giao Dịch</h2>
+            <p>Nội dung trang giao dịch sẽ được thêm vào...</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>
