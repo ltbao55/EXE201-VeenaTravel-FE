@@ -159,14 +159,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </button>
 
             <div className="premium-offer">
-              <h3>🎉 Ưu đãi đặc biệt cho thành viên mới!</h3>
-              <p>Đăng ký Premium ngay hôm nay và nhận:</p>
-              <ul>
-                <li>✨ Tư vấn cá nhân hóa không giới hạn</li>
-                <li>🗺️ Lập lịch trình chi tiết tự động</li>
-                <li>💰 Giảm giá đến 20% cho các tour</li>
-                <li>📞 Hỗ trợ 24/7</li>
-              </ul>
               <button className="btn-premium">Đăng ký Premium</button>
             </div>
 

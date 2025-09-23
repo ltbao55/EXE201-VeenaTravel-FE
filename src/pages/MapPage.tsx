@@ -1,6 +1,5 @@
 import React from "react";
 import Navigation from "../components/common/Navigation";
-import "../styles/MapPage.css";
 
 const MapPage: React.FC = () => {
   return (

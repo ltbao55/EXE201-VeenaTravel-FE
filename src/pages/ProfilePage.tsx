@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Navigation from "../components/common/Navigation";
-import "../styles/ProfilePage.css";
 
 const ProfilePage: React.FC = () => {
   const [activeSection, setActiveSection] = useState("profile");

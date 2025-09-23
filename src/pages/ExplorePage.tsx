@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/common/Navigation";
-import "../styles/ExplorePage.css";
 
 interface Place {
   id: number;

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/ChatPage.css";
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
