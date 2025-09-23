@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/auth/AuthModal";
+import "../styles/HomePage.css";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();

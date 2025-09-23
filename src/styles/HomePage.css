@@ -356,8 +356,8 @@
 }
 
 .avatar-circle {
-  width: 450px;
-  height: 450px;
+  width: 500px;
+  height: 500px;
   border-radius: 50%;
   position: relative;
   border: 10px solid rgba(255, 255, 255, 0.9);
@@ -1107,5 +1107,10 @@
   
   .left-sidebar {
     display: none;
+  }
+
+  .avatar-circle {
+    width: 350px;
+    height: 350px;
   }
 }
