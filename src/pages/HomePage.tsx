@@ -309,7 +309,7 @@ const HomePage: React.FC = () => {
                 <ul>
                   <li>Email: info@veenatravel.com</li>
                   <li>Phone: +84 123 456 789</li>
-                  <li>Address: 12 Đường ABC, TP.HCM</li>
+                  <li>Address: 123 Đường ABC, TP.HCM</li>
                 </ul>
               </div>
             </div>
