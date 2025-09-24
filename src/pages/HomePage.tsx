@@ -173,8 +173,7 @@ const HomePage: React.FC = () => {
         <div className="container">
           <h2 className="services-title">Mọi thông tin - một nơi duy nhất</h2>
           <div className="services-grid">
-            <div className="service-card hotel">
-              <div className="service-icon">🏨</div>
+            <div className="service-card">
               <h3>Khách sạn</h3>
               <p>Tìm kiếm và đặt phòng khách sạn tốt nhất</p>
               <div className="service-image">
@@ -184,8 +183,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card rental">
-              <div className="service-icon">🚗</div>
+            <div className="service-card">
               <h3>Thuê xe</h3>
               <p>Thuê xe du lịch tiện lợi và an toàn</p>
               <div className="service-image">
@@ -195,8 +193,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card flight">
-              <div className="service-icon">✈️</div>
+            <div className="service-card">
               <h3>Chuyến bay</h3>
               <p>Đặt vé máy bay giá tốt nhất</p>
               <div className="service-image">
@@ -206,8 +203,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card restaurant">
-              <div className="service-icon">🍽️</div>
+            <div className="service-card">
               <h3>Nhà hàng</h3>
               <p>Khám phá ẩm thực địa phương đặc sắc</p>
               <div className="service-image">
@@ -217,8 +213,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card tour">
-              <div className="service-icon">🗺️</div>
+            <div className="service-card">
               <h3>Tour du lịch</h3>
               <p>Trải nghiệm tour du lịch chất lượng cao</p>
               <div className="service-image">
