@@ -5,6 +5,7 @@ import ProfilePage from "../pages/ProfilePage";
 import ExplorePage from "../pages/ExplorePage";
 import DashboardPage from "../pages/DashboardPage";
 import MapPage from "../pages/MapPage";
+import ServicesPage from "../pages/ServicesPage";
 
 const AppRouter = () => {
   return (
@@ -16,6 +17,7 @@ const AppRouter = () => {
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/map" element={<MapPage />} />
+        <Route path="/services" element={<ServicesPage />} />
       </Routes>
     </Router>
   );

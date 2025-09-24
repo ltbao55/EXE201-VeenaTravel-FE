@@ -1,12 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Header from "../components/Header/Header";
 import AuthModal from "../components/auth/AuthModal";
 import "../styles/HomePage.css";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { openAuthModal, showAuthModal, closeAuthModal, authMode } = useAuth();
+  const { showAuthModal, closeAuthModal, authMode } = useAuth();
 
   const handleStartChat = () => {
     navigate("/chat");
@@ -14,40 +15,7 @@ const HomePage: React.FC = () => {
 
   return (
     <>
-      {/* Header */}
-      <header className="header">
-        <nav className="nav">
-          <div className="nav-brand">
-            <img
-              src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758702781/logo-veena_tlzubw.png"
-              alt="VeenaTravel"
-              className="logo"
-            />
-          </div>
-          <ul className="nav-menu">
-            <li>
-              <a href="#home">Trang chủ</a>
-            </li>
-            <li>
-              <a href="#about">Giới thiệu</a>
-            </li>
-            <li>
-              <a href="#services">Dịch vụ</a>
-            </li>
-            <li>
-              <a href="#contact">Liên hệ</a>
-            </li>
-          </ul>
-          <div className="nav-cta">
-            <button
-              className="btn-register"
-              onClick={() => openAuthModal("register")}
-            >
-              Đăng ký ngay
-            </button>
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <section id="home" className="hero">

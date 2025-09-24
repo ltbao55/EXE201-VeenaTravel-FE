@@ -1,21 +1,49 @@
-import { Link } from 'react-router-dom';
-import './Header.css';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import "./Header.css";
 
-const Header = () => {
+const Header: React.FC = () => {
+  const navigate = useNavigate();
+  const { openAuthModal } = useAuth();
+
   return (
     <header className="header">
       <nav className="nav">
         <div className="nav-brand">
-          <Link to="/" className="logo">VeenaTravel</Link>
+          <img
+            src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758702781/logo-veena_tlzubw.png"
+            alt="VeenaTravel"
+            className="logo"
+            onClick={() => navigate("/")}
+            style={{ cursor: "pointer" }}
+          />
         </div>
         <ul className="nav-menu">
-          <li><Link to="/">Trang chủ</Link></li>
-          <li><Link to="/explore">Khám phá</Link></li>
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/chat">Chat</Link></li>
+          <li>
+            <a href="#" onClick={() => navigate("/")}>
+              Trang chủ
+            </a>
+          </li>
+          <li>
+            <a href="#about">Giới thiệu</a>
+          </li>
+          <li>
+            <a href="#" onClick={() => navigate("/services")}>
+              Dịch vụ
+            </a>
+          </li>
+          <li>
+            <a href="#contact">Liên hệ</a>
+          </li>
         </ul>
         <div className="nav-cta">
-          <Link to="/profile" className="btn-register">Hồ sơ</Link>
+          <button
+            className="btn-register"
+            onClick={() => openAuthModal("register")}
+          >
+            Đăng ký ngay
+          </button>
         </div>
       </nav>
     </header>
