@@ -31,9 +31,9 @@
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .nav-menu {
@@ -45,7 +45,7 @@
 }
 
 .nav-menu a {
-  color: var(--text-dark);
+  color: white;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -94,15 +94,9 @@
   align-items: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 77, 133, 0.95) 0%,
-    rgba(255, 107, 157, 0.9) 25%,
-    rgba(255, 77, 133, 0.85) 50%,
-    rgba(229, 53, 112, 0.9) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .hero-background {
@@ -111,9 +105,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><pattern id="terraces" patternUnits="userSpaceOnUse" width="100" height="60"><path d="M0,30 Q25,20 50,30 T100,30" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="none"/><path d="M0,45 Q25,35 50,45 T100,45" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="none"/></pattern></defs><rect width="100%" height="100%" fill="url(%23terraces)"/></svg>');
+  background-image: url('https://res.cloudinary.com/djytw2oj3/image/upload/v1758298142/6989c542c5f9a372df37772cb624e7329209562b_2_ul7xiu.jpg');
   background-size: cover;
-  opacity: 0.3;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 
@@ -247,14 +242,16 @@
 
 .banner-text h3 {
   font-size: 1.8rem;
-  color: var(--text-dark);
+  color: #2c3e50;
   margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .banner-text p {
-  color: var(--text-light);
+  color: #333;
   margin-bottom: 2rem;
   font-size: 1.1rem;
+  font-weight: 500;
 }
 
 .banner-image {
@@ -329,19 +326,19 @@
 .process-card {
   background: linear-gradient(
     135deg,
-    rgba(255, 77, 133, 0.25) 0%,
-    rgba(255, 107, 157, 0.2) 25%,
-    rgba(255, 77, 133, 0.22) 50%,
-    rgba(229, 53, 112, 0.28) 100%
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 249, 250, 0.9) 25%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(245, 245, 245, 0.95) 100%
   );
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   padding: 2.5rem;
   border-radius: 20px;
-  border: 1px solid rgba(255, 77, 133, 0.3);
-  color: white;
+  border: 1px solid rgba(255, 77, 133, 0.2);
+  color: #333;
   box-shadow: 0 15px 35px rgba(255, 77, 133, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .process-card h3 {
@@ -352,7 +349,8 @@
 
 .process-card p {
   line-height: 1.6;
-  opacity: 0.9;
+  opacity: 0.8;
+  color: #555;
 }
 
 .avatar-circle {
@@ -435,19 +433,19 @@
 .planning-card {
   background: linear-gradient(
     135deg,
-    rgba(255, 77, 133, 0.25) 0%,
-    rgba(255, 107, 157, 0.2) 25%,
-    rgba(255, 77, 133, 0.22) 50%,
-    rgba(229, 53, 112, 0.28) 100%
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 249, 250, 0.9) 25%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(245, 245, 245, 0.95) 100%
   );
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   padding: 2.5rem;
   border-radius: 20px;
-  border: 1px solid rgba(255, 77, 133, 0.3);
-  color: white;
+  border: 1px solid rgba(255, 77, 133, 0.2);
+  color: #333;
   box-shadow: 0 15px 35px rgba(255, 77, 133, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .planning-card h3 {
@@ -458,7 +456,8 @@
 
 .planning-card p {
   line-height: 1.6;
-  opacity: 0.9;
+  opacity: 0.8;
+  color: #555;
 }
 
 /* App Interface Section */
@@ -474,10 +473,21 @@
 }
 
 .interface-card {
-  background: var(--primary-color-40);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 249, 250, 0.9) 25%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgba(245, 245, 245, 0.95) 100%
+  );
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   padding: 2.5rem;
   border-radius: 20px;
-  color: white;
+  border: 1px solid rgba(255, 77, 133, 0.2);
+  color: #333;
+  box-shadow: 0 15px 35px rgba(255, 77, 133, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .interface-card h3 {
@@ -488,7 +498,8 @@
 
 .interface-card p {
   line-height: 1.6;
-  opacity: 0.9;
+  opacity: 0.8;
+  color: #555;
 }
 
 .interface-mockup {
@@ -687,6 +698,13 @@
   grid-template-columns: 1fr 2fr;
   gap: 3rem;
   margin-bottom: 2rem;
+}
+
+.footer-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
 }
 
 .footer-brand p {

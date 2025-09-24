@@ -18,7 +18,11 @@ const HomePage: React.FC = () => {
       <header className="header">
         <nav className="nav">
           <div className="nav-brand">
-            <span className="logo">VeenaTravel</span>
+            <img
+              src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758702781/logo-veena_tlzubw.png"
+              alt="VeenaTravel"
+              className="logo"
+            />
           </div>
           <ul className="nav-menu">
             <li>
@@ -263,7 +267,7 @@ const HomePage: React.FC = () => {
           <div className="footer-content">
             <div className="footer-brand">
               <img
-                src="logo-white.png"
+                src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758702781/logo-veena_tlzubw.png"
                 alt="VeenaTravel"
                 className="footer-logo"
               />
