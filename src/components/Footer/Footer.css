@@ -1,8 +1,10 @@
-.footer {
-  background: #1a1a1a;
-  color: white;
-  padding: 3rem 0 1rem;
+footer.footer {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  color: #2c3e50 !important;
+  padding: 4rem 0 2rem !important;
   margin-top: auto;
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(255, 77, 133, 0.1);
 }
 
 .footer .container {
@@ -11,22 +13,27 @@
   padding: 0 2rem;
 }
 
-.footer-content {
+footer.footer .footer-content {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 3rem;
   margin-bottom: 2rem;
 }
 
-.footer-brand h2 {
-  color: #FF4D85;
-  font-size: 2rem;
-  margin: 0;
+.footer-logo {
+  height: 60px;
+  width: auto;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-.footer-brand p {
+footer.footer .footer-brand p {
   margin: 0.5rem 0;
-  color: #ccc;
+  color: #5a6c7d !important;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  opacity: 1 !important;
 }
 
 .footer-links {
@@ -35,10 +42,12 @@
   gap: 2rem;
 }
 
-.footer-column h4 {
-  color: #FF4D85;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+footer.footer .footer-column h4 {
+  color: #FF4D85 !important;
+  margin-bottom: 1.2rem !important;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .footer-column ul {
@@ -48,24 +57,34 @@
 }
 
 .footer-column li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
 }
 
-.footer-column a {
-  color: #ccc;
+footer.footer .footer-column a {
+  color: #5a6c7d !important;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  font-weight: 400;
+  line-height: 1.8;
+  padding: 2px 0;
+  border-radius: 4px;
+  opacity: 1 !important;
 }
 
-.footer-column a:hover {
-  color: #FF4D85;
+footer.footer .footer-column a:hover {
+  color: #FF4D85 !important;
+  transform: translateX(3px);
+  opacity: 1 !important;
 }
 
-.footer-bottom {
-  border-top: 1px solid #333;
-  padding-top: 1rem;
+footer.footer .footer-bottom {
+  border-top: 1px solid rgba(255, 77, 133, 0.15) !important;
+  padding-top: 1.5rem !important;
   text-align: center;
-  color: #999;
+  color: #7a8a9a !important;
+  font-size: 0.95rem;
+  font-weight: 400;
+  opacity: 1 !important;
 }
 
 @media (max-width: 768px) {
