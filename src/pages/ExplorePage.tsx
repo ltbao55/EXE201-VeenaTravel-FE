@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import SidebarFooter from "../components/SidebarFooter";
 import LeftSidebar from "../components/LeftSidebar";
 import MapContainer from "../components/MapContainer";
 import "../styles/ExplorePage.css";
@@ -13,7 +11,6 @@ declare global {
 }
 
 const ExplorePage: React.FC = () => {
-  const navigate = useNavigate();
   const [exploreMap, setExploreMap] = useState<any>(null);
   const [isContentVisible, setIsContentVisible] = useState<boolean>(true);
 

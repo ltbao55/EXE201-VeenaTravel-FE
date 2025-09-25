@@ -1370,64 +1370,9 @@ body {
   transform: translateY(-1px);
 }
 
-.chat-tabs {
-  display: flex;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 77, 133, 0.8) 0%,
-    rgba(255, 107, 157, 0.9) 50%,
-    rgba(255, 77, 133, 0.8) 100%
-  );
-  border-radius: 0;
-  padding: 8px 0;
-  margin: 0;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 20px rgba(255, 77, 133, 0.2);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100vw;
-  z-index: 1000;
-  justify-content: flex-start;
-  padding-left: 2rem;
-}
+/* Removed conflicting .chat-tabs styles - handled in ChatPage.css */
 
-.tab-btn {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.05) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.tab-btn.active {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 77, 133, 0.8) 0%,
-    rgba(255, 77, 133, 0.6) 100%
-  );
-  border-color: rgba(255, 77, 133, 0.5);
-  box-shadow: 0 4px 15px rgba(255, 77, 133, 0.3);
-}
-
-.tab-btn:hover:not(.active) {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(255, 255, 255, 0.1) 100%
-  );
-}
+/* Removed conflicting .tab-btn styles - handled in ChatPage.css */
 
 .chat-content {
   flex: 1;

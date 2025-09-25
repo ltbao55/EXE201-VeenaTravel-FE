@@ -12,40 +12,35 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ activeItem = "chats" }) => {
   return (
     <div className="left-sidebar">
       <div className="sidebar-header">
-        <div className="logo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M12 2L2 7L12 12L22 7L12 2Z"
-              stroke="#FF4D85"
-              strokeWidth="2"
-              strokeLinejoin="round"
+        <div className="logo-container">
+          <div className="logo" onClick={() => navigate("/")}>
+            <img
+              src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758702781/logo-veena_tlzubw.png"
+              alt="Veena Travel Logo"
             />
-            <path
-              d="M2 17L12 22L22 17"
-              stroke="#FF4D85"
-              strokeWidth="2"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M2 12L12 17L22 12"
-              stroke="#FF4D85"
-              strokeWidth="2"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span>veena travel.</span>
+          </div>
+          <button
+            className="home-arrow"
+            onClick={() => navigate("/")}
+            title="Về trang chủ"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
-        <button className="back-btn" onClick={() => navigate("/")}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M19 12H5M12 19L5 12L12 5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
       </div>
 
       <div className="sidebar-menu">
@@ -220,11 +215,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ activeItem = "chats" }) => {
         </div>
       </div>
 
-      <div className="new-chat-btn">
-        <button className="btn-new-chat">New chat</button>
-      </div>
-
-      <SidebarFooter />
+      <SidebarFooter activeItem={activeItem} />
     </div>
   );
 };

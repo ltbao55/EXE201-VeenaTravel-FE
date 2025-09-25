@@ -8,7 +8,7 @@ import "../styles/ServicesPage.css";
 
 const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { openAuthModal, showAuthModal, closeAuthModal, authMode } = useAuth();
+  const { showAuthModal, closeAuthModal, authMode } = useAuth();
 
   const handleGetStarted = (planType: string) => {
     if (planType === "premium") {
