@@ -1,12 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 import AuthModal from "../components/auth/AuthModal";
 import "../styles/HomePage.css";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { openAuthModal, showAuthModal, closeAuthModal, authMode } = useAuth();
+  const { showAuthModal, closeAuthModal, authMode } = useAuth();
 
   const handleStartChat = () => {
     navigate("/chat");
@@ -14,36 +16,7 @@ const HomePage: React.FC = () => {
 
   return (
     <>
-      {/* Header */}
-      <header className="header">
-        <nav className="nav">
-          <div className="nav-brand">
-            <span className="logo">VeenaTravel</span>
-          </div>
-          <ul className="nav-menu">
-            <li>
-              <a href="#home">Trang chủ</a>
-            </li>
-            <li>
-              <a href="#about">Giới thiệu</a>
-            </li>
-            <li>
-              <a href="#services">Dịch vụ</a>
-            </li>
-            <li>
-              <a href="#contact">Liên hệ</a>
-            </li>
-          </ul>
-          <div className="nav-cta">
-            <button
-              className="btn-register"
-              onClick={() => openAuthModal("register")}
-            >
-              Đăng ký ngay
-            </button>
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <section id="home" className="hero">
@@ -78,7 +51,12 @@ const HomePage: React.FC = () => {
                 Khám phá vẻ đẹp bất tận của Việt Nam với những trải nghiệm độc
                 đáo và khó quên
               </p>
-              <button className="btn btn-outline">Khám phá ngay</button>
+              <button
+                className="btn btn-outline"
+                onClick={() => navigate("/chat/explore")}
+              >
+                Khám phá ngay
+              </button>
             </div>
             <div className="banner-image">
               <img
@@ -169,8 +147,7 @@ const HomePage: React.FC = () => {
         <div className="container">
           <h2 className="services-title">Mọi thông tin - một nơi duy nhất</h2>
           <div className="services-grid">
-            <div className="service-card hotel">
-              <div className="service-icon">🏨</div>
+            <div className="service-card">
               <h3>Khách sạn</h3>
               <p>Tìm kiếm và đặt phòng khách sạn tốt nhất</p>
               <div className="service-image">
@@ -180,8 +157,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card rental">
-              <div className="service-icon">🚗</div>
+            <div className="service-card">
               <h3>Thuê xe</h3>
               <p>Thuê xe du lịch tiện lợi và an toàn</p>
               <div className="service-image">
@@ -191,8 +167,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card flight">
-              <div className="service-icon">✈️</div>
+            <div className="service-card">
               <h3>Chuyến bay</h3>
               <p>Đặt vé máy bay giá tốt nhất</p>
               <div className="service-image">
@@ -202,8 +177,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card restaurant">
-              <div className="service-icon">🍽️</div>
+            <div className="service-card">
               <h3>Nhà hàng</h3>
               <p>Khám phá ẩm thực địa phương đặc sắc</p>
               <div className="service-image">
@@ -213,8 +187,7 @@ const HomePage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="service-card tour">
-              <div className="service-icon">🗺️</div>
+            <div className="service-card">
               <h3>Tour du lịch</h3>
               <p>Trải nghiệm tour du lịch chất lượng cao</p>
               <div className="service-image">
@@ -231,23 +204,6 @@ const HomePage: React.FC = () => {
       {/* Discovery Sections */}
       <section className="discovery-section">
         <div className="container">
-          <div className="large-discovery-card">
-            <div className="discovery-content">
-              <h2>Khám phá phong cách du lịch của bạn</h2>
-              <p>
-                Tìm hiểu những điểm đến phù hợp với sở thích và phong cách du
-                lịch riêng của bạn
-              </p>
-              <button className="btn btn-primary">Làm bài test ngay</button>
-            </div>
-            <div className="discovery-image">
-              <img
-                src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758299910/53323c2fc6be88424bb4735c52eb91fa383b8dee_pl1rdf.jpg"
-                alt="Discovery"
-              />
-            </div>
-          </div>
-
           <div className="banner-placeholder">
             <img
               src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758465037/93ddcaff81ac2f5e113fd0f3a8e58ec87b741043_lxcwue_chof7b.jpg"
@@ -257,68 +213,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <img
-                src="logo-white.png"
-                alt="VeenaTravel"
-                className="footer-logo"
-              />
-              <p>Trải nghiệm du lịch khác biệt</p>
-            </div>
-            <div className="footer-links">
-              <div className="footer-column">
-                <h4>Dịch vụ</h4>
-                <ul>
-                  <li>
-                    <a href="#">Tour trong nước</a>
-                  </li>
-                  <li>
-                    <a href="#">Tour nước ngoài</a>
-                  </li>
-                  <li>
-                    <a href="#">Đặt khách sạn</a>
-                  </li>
-                  <li>
-                    <a href="#">Vé máy bay</a>
-                  </li>
-                </ul>
-              </div>
-              <div className="footer-column">
-                <h4>Hỗ trợ</h4>
-                <ul>
-                  <li>
-                    <a href="#">Liên hệ</a>
-                  </li>
-                  <li>
-                    <a href="#">FAQ</a>
-                  </li>
-                  <li>
-                    <a href="#">Chính sách</a>
-                  </li>
-                  <li>
-                    <a href="#">Điều khoản</a>
-                  </li>
-                </ul>
-              </div>
-              <div className="footer-column">
-                <h4>Liên hệ</h4>
-                <ul>
-                  <li>Email: info@veenatravel.com</li>
-                  <li>Phone: +84 123 456 789</li>
-                  <li>Address: 123 Đường ABC, TP.HCM</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <p>&copy; 2024 VeenaTravel. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Auth Modal */}
       <AuthModal
