@@ -26,7 +26,7 @@ const ServicesPage: React.FC = () => {
       <section className="services-hero">
         <div className="container">
           <div className="hero-content">
-            <h1>Chọn gói dịch vụ phù hợp</h1>
+            <h1 className="hero-title">Chọn gói dịch vụ phù hợp</h1>
             <p>
               Trải nghiệm du lịch tuyệt vời với các gói dịch vụ được thiết kế
               riêng cho bạn

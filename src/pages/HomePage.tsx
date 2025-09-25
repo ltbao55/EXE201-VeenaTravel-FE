@@ -51,7 +51,12 @@ const HomePage: React.FC = () => {
                 Khám phá vẻ đẹp bất tận của Việt Nam với những trải nghiệm độc
                 đáo và khó quên
               </p>
-              <button className="btn btn-outline">Khám phá ngay</button>
+              <button
+                className="btn btn-outline"
+                onClick={() => navigate("/chat/explore")}
+              >
+                Khám phá ngay
+              </button>
             </div>
             <div className="banner-image">
               <img
@@ -199,23 +204,6 @@ const HomePage: React.FC = () => {
       {/* Discovery Sections */}
       <section className="discovery-section">
         <div className="container">
-          <div className="large-discovery-card">
-            <div className="discovery-content">
-              <h2>Khám phá phong cách du lịch của bạn</h2>
-              <p>
-                Tìm hiểu những điểm đến phù hợp với sở thích và phong cách du
-                lịch riêng của bạn
-              </p>
-              <button className="btn btn-primary">Làm bài test ngay</button>
-            </div>
-            <div className="discovery-image">
-              <img
-                src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758299910/53323c2fc6be88424bb4735c52eb91fa383b8dee_pl1rdf.jpg"
-                alt="Discovery"
-              />
-            </div>
-          </div>
-
           <div className="banner-placeholder">
             <img
               src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758465037/93ddcaff81ac2f5e113fd0f3a8e58ec87b741043_lxcwue_chof7b.jpg"
