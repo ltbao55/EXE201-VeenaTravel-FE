@@ -15,6 +15,19 @@ declare global {
 const ExplorePage: React.FC = () => {
   const navigate = useNavigate();
   const [exploreMap, setExploreMap] = useState<any>(null);
+  const [isContentVisible, setIsContentVisible] = useState<boolean>(true);
+
+  // Handle content visibility toggle and map resize
+  const toggleContentVisibility = () => {
+    setIsContentVisible(!isContentVisible);
+
+    // Wait for CSS transition to complete, then resize map
+    setTimeout(() => {
+      if (exploreMap) {
+        exploreMap.invalidateSize();
+      }
+    }, 300); // Match CSS transition duration
+  };
 
   // Initialize map when component mounts
   useEffect(() => {
@@ -197,7 +210,7 @@ const ExplorePage: React.FC = () => {
         <LeftSidebar activeItem="explore" />
 
         {/* Explore Content */}
-        <div className="explore-content">
+        <div className={`explore-content ${!isContentVisible ? "hidden" : ""}`}>
           <div className="explore-header">
             <h1>Thành phố Hồ Chí Minh</h1>
             <div className="search-bar">
@@ -245,7 +258,36 @@ const ExplorePage: React.FC = () => {
         </div>
 
         {/* Map Container */}
-        <MapContainer mapId="explore-map" />
+        <div className="map-container">
+          <button
+            className="toggle-content-btn"
+            onClick={toggleContentVisibility}
+            title={
+              isContentVisible
+                ? "Ẩn panel để xem bản đồ rộng hơn"
+                : "Hiển thị panel khám phá"
+            }
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              style={{
+                transform: isContentVisible ? "rotate(0deg)" : "rotate(180deg)",
+              }}
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <MapContainer mapId="explore-map" />
+        </div>
       </div>
     </div>
   );
