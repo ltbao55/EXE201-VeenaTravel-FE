@@ -50,14 +50,14 @@ class ApiClient {
 
     // Request interceptor to add auth token
     this.client.interceptors.request.use(
-      (config) => {
+      (config: any) => {
         const token = localStorage.getItem("authToken");
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
-      (error) => {
+      (error: any) => {
         return Promise.reject(error);
       }
     );
@@ -67,7 +67,7 @@ class ApiClient {
       (response: AxiosResponse) => {
         return response;
       },
-      (error) => {
+      (error: any) => {
         // Handle 401 errors (unauthorized)
         if (error.response?.status === 401) {
           localStorage.removeItem("authToken");
@@ -82,7 +82,7 @@ class ApiClient {
   // Generic request method
   async request<T = any>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
-      const response = await this.client.request<ApiResponse<T>>(config);
+      const response = await this.client.request(config);
       return response.data;
     } catch (error: any) {
       // Handle network errors or server errors
@@ -90,7 +90,7 @@ class ApiClient {
         // Server responded with error status
         return {
           success: false,
-          data: null,
+          data: undefined as T,
           error:
             error.response.data?.message ||
             error.response.data?.error ||
@@ -100,14 +100,14 @@ class ApiClient {
         // Network error
         return {
           success: false,
-          data: null,
+          data: undefined as T,
           error: "Network error. Please check your connection.",
         };
       } else {
         // Other error
         return {
           success: false,
-          data: null,
+          data: undefined as T,
           error: error.message || "An unexpected error occurred",
         };
       }

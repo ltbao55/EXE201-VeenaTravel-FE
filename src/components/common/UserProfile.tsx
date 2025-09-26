@@ -43,7 +43,7 @@ const UserProfile: React.FC = () => {
       return user.avatar;
     }
     // Generate a simple avatar with user initials
-    return null;
+    return undefined;
   };
 
   const getUserInitials = () => {
