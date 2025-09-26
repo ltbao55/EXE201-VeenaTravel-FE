@@ -1,15 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import LeftSidebar from "../components/LeftSidebar";
 import ChatHistorySidebar from "../components/ChatHistorySidebar";
-import MapContainer from "../components/MapContainer";
+import ChatMap from "../components/ChatMap";
 import "../styles/ChatPage.css";
-
-// Declare Leaflet types
-declare global {
-  interface Window {
-    L: any;
-  }
-}
 
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState([
@@ -27,7 +20,6 @@ const ChatPage: React.FC = () => {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [chatMap, setChatMap] = useState<any>(null);
   const [showChatHistory, setShowChatHistory] = useState(false);
 
   const handleSendMessage = () => {
@@ -46,117 +38,6 @@ const ChatPage: React.FC = () => {
     if (e.key === "Enter") {
       handleSendMessage();
     }
-  };
-
-  // Initialize map when component mounts
-  useEffect(() => {
-    // Load Leaflet CSS and JS
-    const loadLeaflet = async () => {
-      // Add Leaflet CSS
-      if (!document.querySelector('link[href*="leaflet"]')) {
-        const leafletCSS = document.createElement("link");
-        leafletCSS.rel = "stylesheet";
-        leafletCSS.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(leafletCSS);
-      }
-
-      // Add Leaflet JS
-      if (!window.L) {
-        const leafletJS = document.createElement("script");
-        leafletJS.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-        leafletJS.onload = () => {
-          setTimeout(() => {
-            initChatMap();
-          }, 100);
-        };
-        document.head.appendChild(leafletJS);
-      } else {
-        setTimeout(() => {
-          initChatMap();
-        }, 100);
-      }
-    };
-
-    loadLeaflet();
-
-    return () => {
-      if (chatMap) {
-        chatMap.remove();
-      }
-    };
-  }, []);
-
-  // Initialize chat map
-  const initChatMap = () => {
-    if (chatMap) {
-      chatMap.remove();
-      setChatMap(null);
-    }
-
-    const mapContainer = document.getElementById("chat-map");
-    if (!mapContainer || mapContainer.offsetWidth === 0 || !window.L) {
-      setTimeout(() => initChatMap(), 100);
-      return;
-    }
-
-    // Center on Ho Chi Minh City
-    const map = window.L.map("chat-map").setView([10.7769, 106.6951], 13);
-
-    // Add tile layer
-    window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap contributors",
-    }).addTo(map);
-
-    setChatMap(map);
-
-    // Force map to recalculate size
-    setTimeout(() => {
-      if (map) {
-        map.invalidateSize();
-      }
-    }, 100);
-
-    // Add sample markers
-    addChatMapMarkers(map);
-  };
-
-  // Add markers to chat map
-  const addChatMapMarkers = (map: any) => {
-    const destinations = [
-      {
-        name: "Nhà thờ Đức Bà Sài Gòn",
-        lat: 10.7797,
-        lng: 106.699,
-        description: "Biểu tượng kiến trúc Gothic nổi tiếng của Sài Gòn",
-      },
-      {
-        name: "Chợ Bến Thành",
-        lat: 10.772,
-        lng: 106.698,
-        description: "Chợ truyền thống sầm uất với đủ loại hàng hóa",
-      },
-      {
-        name: "Dinh Độc Lập",
-        lat: 10.777,
-        lng: 106.6956,
-        description: "Cung điện lịch sử với kiến trúc độc đáo",
-      },
-      {
-        name: "Đà Lạt",
-        lat: 11.9404,
-        lng: 108.4583,
-        description: "Thành phố ngàn hoa với khí hậu mát mẻ",
-      },
-    ];
-
-    destinations.forEach((dest) => {
-      window.L.marker([dest.lat, dest.lng]).addTo(map).bindPopup(`
-          <div style="text-align: center; min-width: 200px;">
-            <h4 style="margin: 0 0 8px 0; color: #FF4D85; font-size: 16px;">${dest.name}</h4>
-            <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.4;">${dest.description}</p>
-          </div>
-        `);
-    });
   };
 
   return (
@@ -321,7 +202,7 @@ const ChatPage: React.FC = () => {
         </div>
 
         {/* Map Container */}
-        <MapContainer mapId="chat-map" />
+        <ChatMap className="chat-map" />
       </div>
     </div>
   );

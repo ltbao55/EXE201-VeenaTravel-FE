@@ -420,13 +420,58 @@
   border: 1px solid rgba(255, 77, 133, 0.1);
   border-radius: 20px;
   overflow: hidden;
+  position: relative;
 }
 
-#chat-map {
+.chat-map {
   width: 100%;
   height: 100%;
   min-height: 500px;
   border-radius: 20px;
+}
+
+/* Mapbox specific styles */
+.mapboxgl-popup {
+  max-width: 300px;
+}
+
+.mapboxgl-popup-content {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 77, 133, 0.1);
+}
+
+.mapboxgl-popup-close-button {
+  color: #FF4D85;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background-color: rgba(255, 77, 133, 0.1);
+}
+
+.mapboxgl-ctrl-group {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-ctrl button {
+  border-radius: 8px;
+}
+
+.mapboxgl-ctrl button:hover {
+  background-color: rgba(255, 77, 133, 0.1);
+}
+
+/* Custom marker styles */
+.custom-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-marker:hover {
+  transform: scale(1.1);
 }
 
 /* Left Sidebar Styles */
