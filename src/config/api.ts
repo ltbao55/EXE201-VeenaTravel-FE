@@ -1,0 +1,59 @@
+// API Configuration
+export const API_CONFIG = {
+  BASE_URL: 'http://localhost:5001/api',
+  TIMEOUT: 10000,
+  HEADERS: {
+    'Content-Type': 'application/json',
+  },
+};
+
+// API Endpoints
+export const API_ENDPOINTS = {
+  // Authentication
+  AUTH: {
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    LOGOUT: '/auth/logout',
+    ME: '/auth/me',
+    REFRESH: '/auth/refresh',
+  },
+  
+  // Destinations
+  DESTINATIONS: {
+    LIST: '/destinations',
+    DETAIL: '/destinations/:id',
+    SEARCH: '/destinations/search',
+    POPULAR: '/destinations/popular',
+  },
+  
+  // Trips
+  TRIPS: {
+    LIST: '/trips',
+    CREATE: '/trips',
+    DETAIL: '/trips/:id',
+    UPDATE: '/trips/:id',
+    DELETE: '/trips/:id',
+  },
+  
+  // Chat
+  CHAT: {
+    SEND: '/chat',
+    HISTORY: '/chat/history',
+  },
+  
+  // User
+  USER: {
+    PROFILE: '/user/profile',
+    UPDATE_PROFILE: '/user/profile',
+    PREFERENCES: '/user/preferences',
+  },
+};
+
+// Helper function to replace URL parameters
+export const buildUrl = (endpoint: string, params: Record<string, string | number> = {}) => {
+  let url = endpoint;
+  Object.entries(params).forEach(([key, value]) => {
+    url = url.replace(`:${key}`, String(value));
+  });
+  return url;
+};

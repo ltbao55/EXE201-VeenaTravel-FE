@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { AuthService } from "../services/authService";
 
 interface User {
   id: string;
@@ -46,19 +47,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-          // TODO: Validate token with backend
-          // For now, simulate a logged-in user
-          const userData = localStorage.getItem("userData");
-          if (userData) {
-            setUser(JSON.parse(userData));
-          }
+        if (AuthService.isAuthenticated()) {
+          // Try to get current user from backend
+          const userData = await AuthService.getCurrentUser();
+          setUser(userData);
         }
       } catch (error) {
         console.error("Auth check failed:", error);
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userData");
+        // Clear invalid auth data
+        AuthService.logout();
       } finally {
         setIsLoading(false);
       }
@@ -67,23 +64,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (email: string, _password: string) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      const authData = await AuthService.login({ email, password });
 
-      const userData: User = {
-        id: "1",
-        name: "Người dùng",
-        email: email,
-        avatar: "https://via.placeholder.com/40",
-        isPremium: false,
-      };
-
-      setUser(userData);
-      localStorage.setItem("authToken", "mock-token");
-      localStorage.setItem("userData", JSON.stringify(userData));
+      // Store auth data and update state
+      AuthService.storeAuthData(authData);
+      setUser(authData.user);
       setShowAuthModal(false);
     } catch (error) {
       console.error("Login failed:", error);
@@ -93,23 +81,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (name: string, email: string, _password: string) => {
+  const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      const authData = await AuthService.register({ name, email, password });
 
-      const userData: User = {
-        id: "1",
-        name: name,
-        email: email,
-        avatar: "https://via.placeholder.com/40",
-        isPremium: false,
-      };
-
-      setUser(userData);
-      localStorage.setItem("authToken", "mock-token");
-      localStorage.setItem("userData", JSON.stringify(userData));
+      // Store auth data and update state
+      AuthService.storeAuthData(authData);
+      setUser(authData.user);
       setShowAuthModal(false);
     } catch (error) {
       console.error("Registration failed:", error);
@@ -121,8 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
+    AuthService.logout();
   };
 
   const openAuthModal = (mode: "login" | "register" = "login") => {
