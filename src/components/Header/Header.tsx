@@ -1,12 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import UserProfile from "../common/UserProfile";
 import "./Header.css";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { openAuthModal } = useAuth();
 
   return (
     <header className="header">
@@ -39,24 +38,12 @@ const Header: React.FC = () => {
           </li>
         </ul>
         <div className="nav-cta">
-          {isAuthenticated ? (
-            <UserProfile />
-          ) : (
-            <>
-              <button
-                className="btn-login"
-                onClick={() => openAuthModal("login")}
-              >
-                Đăng nhập
-              </button>
-              <button
-                className="btn-register"
-                onClick={() => openAuthModal("register")}
-              >
-                Đăng ký ngay
-              </button>
-            </>
-          )}
+          <button
+            className="btn-register"
+            onClick={() => openAuthModal("register")}
+          >
+            Đăng ký ngay
+          </button>
         </div>
       </nav>
     </header>

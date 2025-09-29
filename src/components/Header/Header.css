@@ -37,7 +37,7 @@
   transition: transform 0.3s ease;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #d63570;
+  color: #D63570;
 }
 
 .nav-brand .logo:hover {
@@ -67,7 +67,7 @@
 }
 
 .nav-menu a::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -90,33 +90,6 @@
   transform: translateY(-1px);
 }
 
-.nav-cta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.nav-cta .btn-login {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.75rem 1.5rem;
-  border-radius: 25px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  font-size: 0.9rem;
-}
-
-.nav-cta .btn-login:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
-}
-
 .nav-cta .btn-register {
   background: linear-gradient(
     135deg,
@@ -135,7 +108,6 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 77, 133, 0.3);
-  font-size: 0.9rem;
 }
 
 .nav-cta .btn-register:hover {
@@ -147,36 +119,4 @@
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 12px 32px rgba(255, 77, 133, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .nav {
-    padding: 0 1rem;
-  }
-
-  .nav-menu {
-    display: none;
-  }
-
-  .nav-cta {
-    gap: 0.5rem;
-  }
-
-  .nav-cta .btn-login,
-  .nav-cta .btn-register {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .nav-cta .btn-login {
-    display: none;
-  }
-
-  .nav-cta .btn-register {
-    padding: 0.6rem 1rem;
-    font-size: 0.8rem;
-  }
 }

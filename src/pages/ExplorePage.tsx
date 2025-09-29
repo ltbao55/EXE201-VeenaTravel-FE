@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import LeftSidebar from "../components/LeftSidebar";
-import ChatMap from "../components/ChatMap";
+import GoogleMapContainer from "../components/GoogleMapContainer";
 import "../styles/ExplorePage.css";
 
 const ExplorePage: React.FC = () => {
@@ -133,7 +133,7 @@ const ExplorePage: React.FC = () => {
               />
             </svg>
           </button>
-          <ChatMap className="explore-map" />
+          <GoogleMapContainer mapId="explore-map" className="explore-map" />
         </div>
       </div>
     </div>

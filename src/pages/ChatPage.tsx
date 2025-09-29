@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import LeftSidebar from "../components/LeftSidebar";
 import ChatHistorySidebar from "../components/ChatHistorySidebar";
-import ChatMap from "../components/ChatMap";
+import GoogleMapContainer from "../components/GoogleMapContainer";
 import "../styles/ChatPage.css";
+
+// Declare Google Maps types
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState([
@@ -21,6 +28,34 @@ const ChatPage: React.FC = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [showChatHistory, setShowChatHistory] = useState(false);
+
+  // Sample markers for Google Maps
+  const mapMarkers = [
+    {
+      lat: 10.7797,
+      lng: 106.699,
+      title: "Nhà thờ Đức Bà Sài Gòn",
+      description: "Biểu tượng kiến trúc Gothic nổi tiếng của Sài Gòn",
+    },
+    {
+      lat: 10.772,
+      lng: 106.698,
+      title: "Chợ Bến Thành",
+      description: "Chợ truyền thống sầm uất với đủ loại hàng hóa",
+    },
+    {
+      lat: 10.777,
+      lng: 106.6956,
+      title: "Dinh Độc Lập",
+      description: "Cung điện lịch sử với kiến trúc độc đáo",
+    },
+    {
+      lat: 11.9404,
+      lng: 108.4583,
+      title: "Đà Lạt",
+      description: "Thành phố ngàn hoa với khí hậu mát mẻ",
+    },
+  ];
 
   const handleSendMessage = () => {
     if (inputValue.trim()) {
@@ -201,8 +236,13 @@ const ChatPage: React.FC = () => {
           )}
         </div>
 
-        {/* Map Container */}
-        <ChatMap className="chat-map" />
+        {/* Google Map Container */}
+        <GoogleMapContainer
+          mapId="chat-map"
+          center={{ lat: 10.7769, lng: 106.6951 }}
+          zoom={13}
+          markers={mapMarkers}
+        />
       </div>
     </div>
   );
