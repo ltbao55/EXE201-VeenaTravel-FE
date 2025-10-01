@@ -232,7 +232,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.btn-google:hover {
+.btn-google:hover:not(:disabled) {
   background: linear-gradient(
     135deg,
     rgba(255, 77, 133, 0.2) 0%,
@@ -242,6 +242,12 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(255, 77, 133, 0.2),
     0 4px 16px rgba(255, 77, 133, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .google-icon {

@@ -13,13 +13,15 @@ const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   initialMode: _initialMode = "login",
 }) => {
-  const { login, register, switchAuthMode, authMode } = useAuth();
+  const { login, register, loginWithGoogle, switchAuthMode, authMode } =
+    useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -43,6 +45,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
     } catch (error) {
       console.error("Auth error:", error);
       alert("Có lỗi xảy ra, vui lòng thử lại!");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      alert(error.message || "Đăng nhập Google thất bại. Vui lòng thử lại!");
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -88,9 +102,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
               <span>hoặc</span>
             </div>
 
-            <button className="btn-google">
+            <button
+              className="btn-google"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading}
+            >
               <i className="fab fa-google"></i>
-              Tiếp tục với Google
+              {isGoogleLoading ? "Đang đăng nhập..." : "Tiếp tục với Google"}
             </button>
 
             <p className="auth-switch">
@@ -153,9 +171,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
               <span>hoặc</span>
             </div>
 
-            <button className="btn-google">
+            <button
+              className="btn-google"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading}
+            >
               <i className="fab fa-google"></i>
-              Tiếp tục với Google
+              {isGoogleLoading ? "Đang đăng nhập..." : "Tiếp tục với Google"}
             </button>
 
             <div className="premium-offer">

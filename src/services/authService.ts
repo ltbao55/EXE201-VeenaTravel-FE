@@ -63,10 +63,17 @@ export class AuthService {
     return response.data.token;
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated (traditional auth only)
   static isAuthenticated(): boolean {
     const token = localStorage.getItem("authToken");
     return !!token;
+  }
+
+  // Check if user is authenticated via any method (traditional or Google)
+  static isAnyAuthenticated(): boolean {
+    const token = localStorage.getItem("authToken");
+    const userData = AuthService.getStoredUser();
+    return !!token || !!userData?.isGoogleUser;
   }
 
   // Get stored user data
@@ -88,6 +95,18 @@ export class AuthService {
     if (authData.refreshToken) {
       localStorage.setItem("refreshToken", authData.refreshToken);
     }
+  }
+
+  // Store Google user data (without token)
+  static storeGoogleUserData(userData: User): void {
+    localStorage.setItem("userData", JSON.stringify(userData));
+  }
+
+  // Clear all auth data (including Google)
+  static clearAllAuthData(): void {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("refreshToken");
   }
 }
 
