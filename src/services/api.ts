@@ -27,6 +27,8 @@ export interface User {
   email: string;
   avatar?: string;
   isPremium?: boolean;
+  // Flag used client-side to mark Firebase Google auth users
+  isGoogleUser?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

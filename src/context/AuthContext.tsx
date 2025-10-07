@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthService } from "../services/authService";
-import FirebaseAuthService, {
-  type FirebaseAuthUser,
-} from "../services/firebaseAuthService";
+import FirebaseAuthService from "../services/firebaseAuthService";
 
 interface User {
   id: string;
