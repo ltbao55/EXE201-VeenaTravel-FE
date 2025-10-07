@@ -5,8 +5,9 @@ import "./Header.css";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { openAuthModal } = useAuth();
+  const { openAuthModal, isAuthenticated, user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -53,41 +54,122 @@ const Header: React.FC = () => {
             </a>
           </li>
           <li>
-            <a href="#about" onClick={closeMenu}>
-              Giới thiệu
-            </a>
-          </li>
-          <li>
             <a href="#" onClick={() => handleNavigation("/services")}>
               Dịch vụ
             </a>
           </li>
+
           <li>
-            <a href="#contact" onClick={closeMenu}>
-              Liên hệ
+            <a href="#" onClick={() => handleNavigation("/chat/explore")}>
+              Khám phá
             </a>
           </li>
-          <li className="mobile-cta">
-            <button
-              className="btn-register mobile"
-              onClick={() => {
-                openAuthModal("register");
-                closeMenu();
-              }}
-            >
-              Đăng ký ngay
-            </button>
+          <li>
+            <a href="#" onClick={() => handleNavigation("/chat")}>
+              Chat
+            </a>
           </li>
+
+          {/* Mobile auth actions */}
+          {!isAuthenticated && (
+            <li className="mobile-cta">
+              <button
+                className="btn-register mobile"
+                onClick={() => {
+                  openAuthModal("register");
+                  closeMenu();
+                }}
+              >
+                Đăng ký ngay
+              </button>
+              <button
+                className="btn-register mobile"
+                style={{ marginTop: "0.5rem" }}
+                onClick={() => {
+                  openAuthModal("login");
+                  closeMenu();
+                }}
+              >
+                Đăng nhập
+              </button>
+            </li>
+          )}
         </ul>
 
         {/* Desktop CTA */}
         <div className="nav-cta desktop-only">
-          <button
-            className="btn-register"
-            onClick={() => openAuthModal("register")}
-          >
-            Đăng ký ngay
-          </button>
+          {!isAuthenticated ? (
+            <>
+              <button
+                className="btn-register"
+                onClick={() => openAuthModal("login")}
+                style={{ marginRight: "0.5rem" }}
+              >
+                Đăng nhập
+              </button>
+              <button
+                className="btn-register"
+                onClick={() => openAuthModal("register")}
+              >
+                Đăng ký ngay
+              </button>
+            </>
+          ) : (
+            <div style={{ position: "relative" }}>
+              <button
+                className="btn-register"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              >
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || "User"}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      marginRight: 8,
+                      verticalAlign: "middle",
+                    }}
+                  />
+                ) : null}
+                {user?.name || "Tài khoản"}
+              </button>
+              {isUserMenuOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "110%",
+                    background: "rgba(255,255,255,0.95)",
+                    borderRadius: 12,
+                    padding: "0.5rem",
+                    minWidth: 180,
+                    boxShadow:
+                      "0 12px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.3)",
+                  }}
+                >
+                  <button
+                    className="btn-register"
+                    onClick={() => handleNavigation("/chat/profile")}
+                    style={{ width: "100%", marginBottom: 8 }}
+                  >
+                    Hồ sơ
+                  </button>
+                  <button
+                    className="btn-register"
+                    onClick={() => {
+                      logout();
+                      setIsUserMenuOpen(false);
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </nav>
 
