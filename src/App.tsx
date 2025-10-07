@@ -1,11 +1,14 @@
 import { AuthProvider } from "./context/AuthContext";
 import AppRouter from "./router/AppRouter";
+import { MobileOptimized } from "./components/common/MobileOptimized";
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRouter />
-    </AuthProvider>
+    <MobileOptimized>
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
+    </MobileOptimized>
   );
 }
 

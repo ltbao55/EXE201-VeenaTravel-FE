@@ -33,7 +33,8 @@ footer.footer {
 .footer-logo {
   height: 60px;
   width: auto;
-  margin-bottom: 1rem;
+  margin: 0 auto 1rem auto;
+  display: block;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 

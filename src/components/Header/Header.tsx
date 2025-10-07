@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Header.css";
@@ -6,6 +6,20 @@ import "./Header.css";
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { openAuthModal } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    closeMenu();
+  };
 
   return (
     <header className="header">
@@ -15,29 +29,59 @@ const Header: React.FC = () => {
             src="https://res.cloudinary.com/djytw2oj3/image/upload/v1758702781/logo-veena_tlzubw.png"
             alt="VeenaTravel"
             className="logo"
-            onClick={() => navigate("/")}
+            onClick={() => handleNavigation("/")}
             style={{ cursor: "pointer" }}
           />
         </div>
-        <ul className="nav-menu">
+
+        {/* Mobile Menu Toggle */}
+        <button
+          className={`mobile-menu-toggle ${isMenuOpen ? "active" : ""}`}
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        {/* Navigation Menu */}
+        <ul className={`nav-menu ${isMenuOpen ? "active" : ""}`}>
           <li>
-            <a href="#" onClick={() => navigate("/")}>
+            <a href="#" onClick={() => handleNavigation("/")}>
               Trang chủ
             </a>
           </li>
           <li>
-            <a href="#about">Giới thiệu</a>
+            <a href="#about" onClick={closeMenu}>
+              Giới thiệu
+            </a>
           </li>
           <li>
-            <a href="#" onClick={() => navigate("/services")}>
+            <a href="#" onClick={() => handleNavigation("/services")}>
               Dịch vụ
             </a>
           </li>
           <li>
-            <a href="#contact">Liên hệ</a>
+            <a href="#contact" onClick={closeMenu}>
+              Liên hệ
+            </a>
+          </li>
+          <li className="mobile-cta">
+            <button
+              className="btn-register mobile"
+              onClick={() => {
+                openAuthModal("register");
+                closeMenu();
+              }}
+            >
+              Đăng ký ngay
+            </button>
           </li>
         </ul>
-        <div className="nav-cta">
+
+        {/* Desktop CTA */}
+        <div className="nav-cta desktop-only">
           <button
             className="btn-register"
             onClick={() => openAuthModal("register")}
@@ -46,6 +90,11 @@ const Header: React.FC = () => {
           </button>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="mobile-menu-overlay" onClick={closeMenu}></div>
+      )}
     </header>
   );
 };
