@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthService } from "../services/authService";
+import FirebaseAuthService, {
+  type FirebaseAuthUser,
+} from "../services/firebaseAuthService";
 
 interface User {
   id: string;
@@ -7,6 +10,7 @@ interface User {
   email: string;
   avatar?: string;
   isPremium?: boolean;
+  isGoogleUser?: boolean;
 }
 
 interface AuthContextType {
@@ -17,6 +21,7 @@ interface AuthContextType {
   authMode: "login" | "register";
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   openAuthModal: (mode?: "login" | "register") => void;
   closeAuthModal: () => void;
@@ -47,21 +52,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        if (AuthService.isAuthenticated()) {
-          // Try to get current user from backend
-          const userData = await AuthService.getCurrentUser();
-          setUser(userData);
-        }
+        // Check Firebase auth first
+        const unsubscribe = FirebaseAuthService.onAuthStateChanged(
+          async (firebaseUser) => {
+            if (firebaseUser) {
+              // User is signed in with Firebase
+              const userData: User = {
+                id: firebaseUser.uid,
+                name:
+                  firebaseUser.displayName ||
+                  firebaseUser.email?.split("@")[0] ||
+                  "User",
+                email: firebaseUser.email || "",
+                avatar: firebaseUser.photoURL || undefined,
+                isPremium: false,
+                isGoogleUser: true,
+              };
+              setUser(userData);
+              setIsLoading(false);
+            } else {
+              // Check traditional auth
+              if (AuthService.isAuthenticated()) {
+                try {
+                  const userData = await AuthService.getCurrentUser();
+                  setUser({ ...userData, isGoogleUser: false });
+                } catch (error) {
+                  console.error("Auth check failed:", error);
+                  AuthService.logout();
+                }
+              }
+              setIsLoading(false);
+            }
+          }
+        );
+
+        // Return cleanup function
+        return unsubscribe;
       } catch (error) {
-        console.error("Auth check failed:", error);
-        // Clear invalid auth data
-        AuthService.logout();
-      } finally {
+        console.error("Auth initialization failed:", error);
         setIsLoading(false);
       }
     };
 
-    checkAuth();
+    const cleanup = checkAuth();
+
+    // Cleanup on unmount
+    return () => {
+      if (cleanup && typeof cleanup.then === "function") {
+        cleanup.then((unsubscribe) => {
+          if (unsubscribe) unsubscribe();
+        });
+      }
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -88,7 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Store auth data and update state
       AuthService.storeAuthData(authData);
-      setUser(authData.user);
+      setUser({ ...authData.user, isGoogleUser: false });
       setShowAuthModal(false);
     } catch (error) {
       console.error("Registration failed:", error);
@@ -98,9 +140,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    AuthService.logout();
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      const firebaseUser = await FirebaseAuthService.signInWithGooglePopup();
+
+      // Create user object from Firebase user
+      const userData: User = {
+        id: firebaseUser.uid,
+        name:
+          firebaseUser.displayName ||
+          firebaseUser.email?.split("@")[0] ||
+          "User",
+        email: firebaseUser.email || "",
+        avatar: firebaseUser.photoURL || undefined,
+        isPremium: false,
+        isGoogleUser: true,
+      };
+
+      setUser(userData);
+      setShowAuthModal(false);
+    } catch (error) {
+      console.error("Google login failed:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      // Sign out from Firebase if user is Google user
+      if (user?.isGoogleUser) {
+        await FirebaseAuthService.signOut();
+      }
+
+      // Clear traditional auth data
+      AuthService.logout();
+      setUser(null);
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Force logout even if Firebase signout fails
+      AuthService.logout();
+      setUser(null);
+    }
   };
 
   const openAuthModal = (mode: "login" | "register" = "login") => {
@@ -124,6 +207,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authMode,
     login,
     register,
+    loginWithGoogle,
     logout,
     openAuthModal,
     closeAuthModal,
