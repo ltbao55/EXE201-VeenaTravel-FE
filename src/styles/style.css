@@ -1281,7 +1281,7 @@ body {
     flex-direction: column;
   }
 
-  .map-container {
+  .map-container:not(.chat-page .map-container) {
     display: none;
   }
 }
@@ -1528,7 +1528,7 @@ body {
 }
 
 /* Map Container */
-.map-container {
+.map-container:not(.chat-page .map-container) {
   flex: 1;
   position: relative;
   min-width: 400px;

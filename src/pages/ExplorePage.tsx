@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import LeftSidebar from "../components/LeftSidebar";
-import GoogleMapContainer from "../components/GoogleMapContainer";
+import GoogleMapsComponent from "../components/GoogleMapsComponent";
 import "../styles/ExplorePage.css";
 
 const ExplorePage: React.FC = () => {
@@ -133,7 +133,13 @@ const ExplorePage: React.FC = () => {
               />
             </svg>
           </button>
-          <GoogleMapContainer mapId="explore-map" className="explore-map" />
+          <GoogleMapsComponent
+            mapId="explore-map"
+            className="explore-map"
+            center={{ lat: 10.7769, lng: 106.6951 }}
+            zoom={13}
+            markers={[]}
+          />
         </div>
       </div>
     </div>

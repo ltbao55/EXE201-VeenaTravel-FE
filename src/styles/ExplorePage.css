@@ -280,7 +280,7 @@
 }
 
 /* Map container needs relative positioning for toggle button */
-.map-container {
+.explore-page .map-container {
   position: relative;
 }
 
@@ -327,7 +327,7 @@
 }
 
 /* Map container adjustments for explore page */
-.chat-page .map-container {
+.explore-page .chat-page .map-container {
   flex: 1;
   min-width: 400px;
 }

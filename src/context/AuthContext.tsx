@@ -75,8 +75,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   const userData = await AuthService.getCurrentUser();
                   setUser({ ...userData, isGoogleUser: false });
                 } catch (error) {
-                  console.error("Auth check failed:", error);
-                  AuthService.logout();
+                  console.warn(
+                    "Auth check failed, user may not be authenticated:",
+                    error
+                  );
+                  // Don't logout immediately, let user try to login
+                  // AuthService.logout();
                 }
               }
               setIsLoading(false);

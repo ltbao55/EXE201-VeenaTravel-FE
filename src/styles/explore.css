@@ -163,7 +163,7 @@
     margin: 0;
 }
 
-.map-container {
+.explore-page .map-container {
     flex: 1;
     position: relative;
 }
@@ -203,7 +203,7 @@
         order: 2;
     }
     
-    .map-container {
+    .explore-page .map-container {
         height: 50vh;
         order: 1;
     }

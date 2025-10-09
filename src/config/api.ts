@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5001/api',
+  BASE_URL: '/api',
   TIMEOUT: 10000,
   HEADERS: {
     'Content-Type': 'application/json',
@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
-    ME: '/auth/me',
+    ME: '/auth/profile',
     REFRESH: '/auth/refresh',
   },
   
@@ -39,6 +39,17 @@ export const API_ENDPOINTS = {
   CHAT: {
     SEND: '/chat',
     HISTORY: '/chat/history',
+  },
+  
+  // Chat Sessions
+  CHAT_SESSIONS: {
+    LIST: '/chat-sessions',
+    DETAIL: '/chat-sessions/:id',
+    BY_SESSION_ID: '/chat-sessions/session/:sessionId',
+    USER_SESSIONS: '/chat-sessions/user/:userId',
+    CREATE: '/chat-sessions',
+    UPDATE: '/chat-sessions/:id',
+    DELETE: '/chat-sessions/:id',
   },
   
   // User
