@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../styles/dashboard.css";
+import UserService, { type ManagedUser } from "../services/userService";
 
 declare global {
   interface Window {
@@ -17,6 +18,12 @@ const DashboardPage: React.FC = () => {
   const [chartPeriod, setChartPeriod] = useState("month");
   const revenueChartRef = useRef<HTMLCanvasElement>(null);
   const serviceChartRef = useRef<HTMLCanvasElement>(null);
+
+  // Users state
+  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [newUser, setNewUser] = useState({ name: "", email: "" });
 
   const handlePageChange = (page: string) => {
     setActivePage(page);
@@ -57,6 +64,53 @@ const DashboardPage: React.FC = () => {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, [sidebarActive]);
+
+  // Fetch users when entering Users page
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (activePage !== "users") return;
+      setUsersLoading(true);
+      setUsersError(null);
+      try {
+        const data = await UserService.list();
+        setUsers(data);
+      } catch (err: any) {
+        setUsersError(err.message || "Không thể tải người dùng");
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [activePage]);
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUser.name || !newUser.email) return;
+    setUsersLoading(true);
+    setUsersError(null);
+    try {
+      const created = await UserService.create({
+        name: newUser.name,
+        email: newUser.email,
+      });
+      setUsers((prev) => [created, ...prev]);
+      setNewUser({ name: "", email: "" });
+    } catch (err: any) {
+      setUsersError(err.message || "Tạo người dùng thất bại");
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm("Xóa người dùng này?")) return;
+    try {
+      await UserService.remove(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err: any) {
+      alert(err.message || "Xóa người dùng thất bại");
+    }
+  };
 
   const updatePageTitle = (pageId: string) => {
     const titles: { [key: string]: string } = {
@@ -408,12 +462,10 @@ const DashboardPage: React.FC = () => {
 
               <div className="date-range-picker">
                 <i className="fas fa-calendar"></i>
-                <select>
+                <select defaultValue="month">
                   <option value="today">Hôm nay</option>
                   <option value="week">7 ngày qua</option>
-                  <option value="month" selected>
-                    30 ngày qua
-                  </option>
+                  <option value="month">30 ngày qua</option>
                   <option value="quarter">3 tháng qua</option>
                   <option value="year">1 năm qua</option>
                 </select>
@@ -908,6 +960,65 @@ const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Users Actions: Create */}
+              <div
+                className="users-table-container"
+                style={{ marginBottom: "1rem" }}
+              >
+                <div className="table-header">
+                  <h3>Tạo Người Dùng</h3>
+                </div>
+                <form
+                  onSubmit={handleCreateUser}
+                  className="users-create-form"
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "center",
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Tên"
+                    value={newUser.name}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, name: e.target.value })
+                    }
+                    style={{
+                      padding: "0.5rem",
+                      border: "1px solid #e9ecef",
+                      borderRadius: 6,
+                    }}
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={newUser.email}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, email: e.target.value })
+                    }
+                    style={{
+                      padding: "0.5rem",
+                      border: "1px solid #e9ecef",
+                      borderRadius: 6,
+                    }}
+                  />
+                  <button
+                    className="action-btn-primary"
+                    type="submit"
+                    disabled={usersLoading}
+                  >
+                    <i className="fas fa-plus"></i>
+                    Tạo
+                  </button>
+                  {usersError && (
+                    <span style={{ color: "#e74c3c", marginLeft: 8 }}>
+                      {usersError}
+                    </span>
+                  )}
+                </form>
+              </div>
+
               {/* Users Table */}
               <div className="users-table-container">
                 <div className="table-header">
@@ -945,61 +1056,95 @@ const DashboardPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td>
-                          <input type="checkbox" className="select-user" />
-                        </td>
-                        <td>
-                          <div className="user-info-cell">
-                            <div className="user-avatar">
-                              <img
-                                src="https://i.pravatar.cc/40?img=1"
-                                alt="Avatar"
-                              />
-                            </div>
-                            <div className="user-details">
-                              <span className="user-name">Nguyễn Văn An</span>
-                              <span className="user-id">#USR001</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>nguyen.van.an@email.com</td>
-                        <td>
-                          <span className="user-type-badge premium">
-                            Premium
-                          </span>
-                        </td>
-                        <td>
-                          <span className="status-badge active">Hoạt động</span>
-                        </td>
-                        <td>15/03/2024</td>
-                        <td>2 giờ trước</td>
-                        <td>
-                          <div className="action-buttons">
-                            <button
-                              className="action-btn view"
-                              title="Xem chi tiết"
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-                            <button
-                              className="action-btn edit"
-                              title="Chỉnh sửa"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button
-                              className="action-btn message"
-                              title="Gửi tin nhắn"
-                            >
-                              <i className="fas fa-envelope"></i>
-                            </button>
-                            <button className="action-btn more" title="Thêm">
-                              <i className="fas fa-ellipsis-v"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                      {usersLoading ? (
+                        <tr>
+                          <td colSpan={8} style={{ textAlign: "center" }}>
+                            Đang tải...
+                          </td>
+                        </tr>
+                      ) : users.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} style={{ textAlign: "center" }}>
+                            Không có người dùng
+                          </td>
+                        </tr>
+                      ) : (
+                        users.map((u) => (
+                          <tr key={u.id}>
+                            <td>
+                              <input type="checkbox" className="select-user" />
+                            </td>
+                            <td>
+                              <div className="user-info-cell">
+                                <div className="user-avatar">
+                                  <img
+                                    src={`https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
+                                      u.email || u.name
+                                    )}`}
+                                    alt="Avatar"
+                                  />
+                                </div>
+                                <div className="user-details">
+                                  <span className="user-name">{u.name}</span>
+                                  <span className="user-id">#{u.id}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td>{u.email}</td>
+                            <td>
+                              <span
+                                className={`user-type-badge ${
+                                  u.isPremium ? "premium" : ""
+                                }`}
+                              >
+                                {u.isPremium ? "Premium" : "Thường"}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                className={`status-badge ${
+                                  u.status === "banned" ? "inactive" : "active"
+                                }`}
+                              >
+                                {u.status || "Hoạt động"}
+                              </span>
+                            </td>
+                            <td>
+                              {u.createdAt
+                                ? new Date(u.createdAt).toLocaleDateString()
+                                : "-"}
+                            </td>
+                            <td>
+                              {u.updatedAt
+                                ? new Date(u.updatedAt).toLocaleString()
+                                : "-"}
+                            </td>
+                            <td>
+                              <div className="action-buttons">
+                                <button
+                                  className="action-btn view"
+                                  title="Xem chi tiết"
+                                >
+                                  <i className="fas fa-eye"></i>
+                                </button>
+                                <button
+                                  className="action-btn edit"
+                                  title="Chỉnh sửa"
+                                >
+                                  <i className="fas fa-edit"></i>
+                                </button>
+                                <button
+                                  className="action-btn"
+                                  title="Xóa"
+                                  onClick={() => handleDeleteUser(u.id)}
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

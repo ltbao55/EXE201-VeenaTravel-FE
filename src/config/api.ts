@@ -1,9 +1,9 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5001/api',
+  BASE_URL: "http://localhost:5001/api",
   TIMEOUT: 10000,
   HEADERS: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 };
 
@@ -11,46 +11,58 @@ export const API_CONFIG = {
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    LOGOUT: '/auth/logout',
-    ME: '/auth/me',
-    REFRESH: '/auth/refresh',
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    LOGOUT: "/auth/logout",
+    ME: "/auth/me",
+    REFRESH: "/auth/refresh",
   },
-  
+
   // Destinations
   DESTINATIONS: {
-    LIST: '/destinations',
-    DETAIL: '/destinations/:id',
-    SEARCH: '/destinations/search',
-    POPULAR: '/destinations/popular',
+    LIST: "/destinations",
+    DETAIL: "/destinations/:id",
+    SEARCH: "/destinations/search",
+    POPULAR: "/destinations/popular",
   },
-  
+
   // Trips
   TRIPS: {
-    LIST: '/trips',
-    CREATE: '/trips',
-    DETAIL: '/trips/:id',
-    UPDATE: '/trips/:id',
-    DELETE: '/trips/:id',
+    LIST: "/trips",
+    CREATE: "/trips",
+    DETAIL: "/trips/:id",
+    UPDATE: "/trips/:id",
+    DELETE: "/trips/:id",
   },
-  
+
   // Chat
   CHAT: {
-    SEND: '/chat',
-    HISTORY: '/chat/history',
+    SEND: "/chat",
+    HISTORY: "/chat/history",
   },
-  
+
   // User
   USER: {
-    PROFILE: '/user/profile',
-    UPDATE_PROFILE: '/user/profile',
-    PREFERENCES: '/user/preferences',
+    PROFILE: "/user/profile",
+    UPDATE_PROFILE: "/user/profile",
+    PREFERENCES: "/user/preferences",
+  },
+
+  // Users management (Dashboard)
+  USERS: {
+    LIST: "/users",
+    CREATE: "/users",
+    DETAIL: "/users/:id",
+    UPDATE: "/users/:id",
+    DELETE: "/users/:id",
   },
 };
 
 // Helper function to replace URL parameters
-export const buildUrl = (endpoint: string, params: Record<string, string | number> = {}) => {
+export const buildUrl = (
+  endpoint: string,
+  params: Record<string, string | number> = {}
+) => {
   let url = endpoint;
   Object.entries(params).forEach(([key, value]) => {
     url = url.replace(`:${key}`, String(value));
