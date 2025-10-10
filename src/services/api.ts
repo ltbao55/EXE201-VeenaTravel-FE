@@ -1,43 +1,14 @@
 import axios from "axios";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import { API_CONFIG } from "../config/api";
-
-// Types
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data: T;
-  message?: string;
-  error?: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  isPremium?: boolean;
-  // Flag used client-side to mark Firebase Google auth users
-  isGoogleUser?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-  refreshToken?: string;
-}
+import type { 
+  ApiResponse, 
+  UserProfile, 
+  User, 
+  LoginRequest, 
+  RegisterRequest, 
+  AuthResponse 
+} from "../types";
 
 // Create axios instance
 class ApiClient {
@@ -155,6 +126,28 @@ class ApiClient {
     return this.request<T>({ ...config, method: "DELETE", url });
   }
 }
+
+// Profile service methods
+export const profileService = {
+  // Get user profile
+  async getProfile(): Promise<ApiResponse<UserProfile>> {
+    return apiClient.get<UserProfile>("/auth/profile");
+  },
+
+  // Update user profile
+  async updateProfile(
+    profileData: Partial<UserProfile>
+  ): Promise<ApiResponse<UserProfile>> {
+    return apiClient.put<UserProfile>("/auth/profile", profileData);
+  },
+
+  // Update user preferences
+  async updatePreferences(
+    preferences: UserProfile["preferences"]
+  ): Promise<ApiResponse<UserProfile>> {
+    return apiClient.put<UserProfile>("/auth/profile", { preferences });
+  },
+};
 
 // Export singleton instance
 export const apiClient = new ApiClient();
