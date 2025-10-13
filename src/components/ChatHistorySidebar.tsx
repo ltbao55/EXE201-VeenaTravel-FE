@@ -1,18 +1,131 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../context/AuthContext";
+import ChatService, { type ChatSession } from "../services/chatService";
 
-const ChatHistorySidebar: React.FC = () => {
+interface ChatHistorySidebarProps {
+  onSelectSession?: (sessionId: string) => void;
+  selectedSessionId?: string;
+}
+
+const ChatHistorySidebar: React.FC<ChatHistorySidebarProps> = ({
+  onSelectSession,
+  selectedSessionId,
+}) => {
+  const { user, isAuthenticated } = useAuth();
+  const currentUserId = React.useMemo(() => {
+    const anyUser = user as unknown as Record<string, unknown>;
+    return (anyUser?.id ?? anyUser?._id ?? anyUser?.uid) as string | undefined;
+  }, [user]);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "trips">("all");
+
+  const loadChatSessions = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    setLoading(true);
+    try {
+      console.log(
+        "[ChatHistorySidebar] Loading chat sessions for user:",
+        currentUserId
+      );
+      const data = await ChatService.getChatSessions(currentUserId);
+      setSessions(data.sessions || []);
+      console.log(
+        "[ChatHistorySidebar] Loaded sessions:",
+        data.sessions?.length || 0
+      );
+    } catch (error) {
+      console.error(
+        "[ChatHistorySidebar] Failed to load chat sessions:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, currentUserId]);
+
+  useEffect(() => {
+    // Add a small delay to avoid race condition with ChatPage
+    const timer = setTimeout(() => {
+      loadChatSessions();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [loadChatSessions]);
+
+  const handleDeleteSession = async (
+    sessionId: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    if (!confirm("Bạn có chắc muốn xóa cuộc trò chuyện này?")) return;
+
+    try {
+      await ChatService.deleteChatSession(sessionId, currentUserId);
+      setSessions((prev) => prev.filter((s) => s.sessionId !== sessionId));
+      console.log("[ChatHistorySidebar] Deleted session:", sessionId);
+    } catch (error) {
+      console.error("[ChatHistorySidebar] Failed to delete session:", error);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return "Hôm nay";
+    if (diffDays === 2) return "Hôm qua";
+    if (diffDays <= 7) return `${diffDays} ngày trước`;
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  const filteredSessions = sessions.filter((session) => {
+    const matchesSearch = session.title
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesTab =
+      activeTab === "all" || (activeTab === "trips" && session.generatedTrip);
+    return matchesSearch && matchesTab;
+  });
+
+  if (!isAuthenticated) {
+    return (
+      <div className="chat-history-view">
+        <div className="chat-sidebar-header">
+          <h2>Lịch sử chat</h2>
+        </div>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
+          Vui lòng đăng nhập để xem lịch sử chat
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="chat-history-view">
       <div className="chat-sidebar-header">
         <div className="chat-sidebar-header-top">
           <h2>
-            Chats <span className="badge">1</span>
+            Chats <span className="badge">{sessions.length}</span>
           </h2>
-          <button className="btn-new-chat-sidebar">New chat</button>
         </div>
         <div className="chat-tabs">
-          <div className="chat-tab active">All</div>
-          <div className="chat-tab">Trips</div>
+          <div
+            className={`chat-tab ${activeTab === "all" ? "active" : ""}`}
+            onClick={() => setActiveTab("all")}
+          >
+            All
+          </div>
+          <div
+            className={`chat-tab ${activeTab === "trips" ? "active" : ""}`}
+            onClick={() => setActiveTab("trips")}
+          >
+            Trips
+          </div>
         </div>
       </div>
       <div className="chat-search-container">
@@ -38,16 +151,50 @@ const ChatHistorySidebar: React.FC = () => {
             strokeLinejoin="round"
           />
         </svg>
-        <input type="text" placeholder="Search chat titles..." />
+        <input
+          type="text"
+          placeholder="Search chat titles..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
       <div className="chat-history-list">
-        <div className="chat-history-item active">
-          <div className="chat-item-title">New chat</div>
-          <div className="chat-item-snippet">
-            Bắt đầu cuộc trò chuyện mới...
+        {loading ? (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
+            Đang tải...
           </div>
-        </div>
-        {/* Add more chat history items here */}
+        ) : filteredSessions.length === 0 ? (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
+            {searchTerm
+              ? "Không tìm thấy chat nào"
+              : "Chưa có cuộc trò chuyện nào"}
+          </div>
+        ) : (
+          filteredSessions.map((session) => (
+            <div
+              key={session.sessionId}
+              className={`chat-history-item ${
+                selectedSessionId === session.sessionId ? "active" : ""
+              }`}
+              onClick={() => onSelectSession?.(session.sessionId)}
+            >
+              <div className="chat-item-title">
+                {session.title || "New chat"}
+              </div>
+              <div className="chat-item-snippet">
+                {session.messageCount} tin nhắn •{" "}
+                {formatDate(session.lastActivity)}
+              </div>
+              <button
+                className="chat-item-delete"
+                onClick={(e) => handleDeleteSession(session.sessionId, e)}
+                title="Xóa cuộc trò chuyện"
+              >
+                ×
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

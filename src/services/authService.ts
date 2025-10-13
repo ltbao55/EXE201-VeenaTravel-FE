@@ -73,7 +73,7 @@ export class AuthService {
   static isAnyAuthenticated(): boolean {
     const token = localStorage.getItem("authToken");
     const userData = AuthService.getStoredUser();
-    return !!token || !!userData?.isGoogleUser;
+    return !!token || !!(userData as any)?.isGoogleUser;
   }
 
   // Get stored user data

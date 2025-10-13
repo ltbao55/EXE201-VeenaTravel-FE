@@ -42,13 +42,10 @@ export interface UserProfile {
   name: string;
   email: string;
   avatar?: string;
-  phone?: string;
-  address?: string;
-  dateOfBirth?: string;
   preferences?: {
-    language: string;
-    theme: string;
-    notifications: boolean;
+    language?: string;
+    theme?: string;
+    notifications?: boolean;
   };
   createdAt?: string;
   updatedAt?: string;

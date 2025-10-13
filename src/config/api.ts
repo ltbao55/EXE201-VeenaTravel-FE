@@ -41,7 +41,18 @@ export const API_ENDPOINTS = {
     SEND: "/chat",
     HISTORY: "/chat/history",
   },
-
+  
+  // Chat Sessions
+  CHAT_SESSIONS: {
+    LIST: '/chat-sessions',
+    DETAIL: '/chat-sessions/:id',
+    BY_SESSION_ID: '/chat-sessions/session/:sessionId',
+    USER_SESSIONS: '/chat-sessions/user/:userId',
+    CREATE: '/chat-sessions',
+    UPDATE: '/chat-sessions/:id',
+    DELETE: '/chat-sessions/:id',
+  },
+  
   // User
   USER: {
     PROFILE: "/user/profile",
