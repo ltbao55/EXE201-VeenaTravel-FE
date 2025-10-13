@@ -1,33 +1,117 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import "../styles/profile.css";
 
+// Professional Profile component
 const Profile: React.FC = () => {
-  const [formData, setFormData] = useState({
+  const { user } = useAuth();
+  const [activeSection, setActiveSection] = useState("profile");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({
     name: "",
-    lastName: "",
-    username: "",
-    website: "",
-    location: "",
+    email: "",
     bio: "",
+    location: "",
+    website: "",
+    phone: "",
   });
+
+  // Enhanced profile data with more realistic information
+  const profileData = user
+    ? {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        isPremium: user.isPremium,
+        bio: "Tôi là một người yêu thích du lịch và khám phá những vùng đất mới. Với niềm đam mê khám phá văn hóa và ẩm thực địa phương, tôi luôn tìm kiếm những trải nghiệm độc đáo và ý nghĩa trong mỗi chuyến đi.",
+        location: "Thành phố Hồ Chí Minh, Việt Nam",
+        website: "https://veenatravel.com",
+        phone: "+84 123 456 789",
+        joinDate: "Tháng 1, 2024",
+        totalTrips: 12,
+        favoriteDestinations: 8,
+        reviews: 24,
+        preferences: {
+          travelTypes: [
+            "Du lịch biển",
+            "Du lịch núi",
+            "Du lịch văn hóa",
+            "Du lịch ẩm thực",
+          ],
+          notifications: {
+            email: true,
+            push: true,
+            sms: false,
+          },
+        },
+      }
+    : null;
+
+  useEffect(() => {
+    if (profileData) {
+      setEditFormData({
+        name: profileData.name,
+        email: profileData.email,
+        bio: profileData.bio,
+        location: profileData.location,
+        website: profileData.website,
+        phone: profileData.phone,
+      });
+    }
+  }, [profileData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setEditFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const [activeSection, setActiveSection] = useState("profile");
+  const handleSave = () => {
+    // In a real app, this would save to API
+    setIsEditing(false);
+    // Show success message
+    alert("Thông tin đã được cập nhật thành công!");
+  };
+
+  const handleCancel = () => {
+    setEditFormData({
+      name: profileData?.name || "",
+      email: profileData?.email || "",
+      bio: profileData?.bio || "",
+      location: profileData?.location || "",
+      website: profileData?.website || "",
+      phone: profileData?.phone || "",
+    });
+    setIsEditing(false);
+  };
+
+  if (!user) {
+    return (
+      <div className="profile-page">
+        <div className="profile-container">
+          <div className="error-container">
+            <div className="error-icon">⚠️</div>
+            <h3>Chưa đăng nhập</h3>
+            <p>Vui lòng đăng nhập để xem thông tin profile</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page">
       <div className="profile-container">
-        {/* Sidebar */}
+        {/* Enhanced Sidebar */}
         <div className="profile-sidebar">
+          <div className="sidebar-header">
+            <h3>Cài đặt</h3>
+          </div>
           <div
             className={`sidebar-item ${
               activeSection === "profile" ? "active" : ""
@@ -35,7 +119,7 @@ const Profile: React.FC = () => {
             onClick={() => setActiveSection("profile")}
           >
             <i className="fas fa-user"></i>
-            <span>Chỉnh sửa hồ sơ</span>
+            <span>Thông tin cá nhân</span>
           </div>
           <div
             className={`sidebar-item ${
@@ -44,7 +128,7 @@ const Profile: React.FC = () => {
             onClick={() => setActiveSection("account")}
           >
             <i className="fas fa-cog"></i>
-            <span>Tài khoản</span>
+            <span>Tài khoản & Bảo mật</span>
           </div>
           <div
             className={`sidebar-item ${
@@ -62,11 +146,20 @@ const Profile: React.FC = () => {
             onClick={() => setActiveSection("notifications")}
           >
             <i className="fas fa-bell"></i>
-            <span>Cài đặt thông báo</span>
+            <span>Thông báo</span>
+          </div>
+          <div
+            className={`sidebar-item ${
+              activeSection === "activity" ? "active" : ""
+            }`}
+            onClick={() => setActiveSection("activity")}
+          >
+            <i className="fas fa-chart-line"></i>
+            <span>Hoạt động</span>
           </div>
         </div>
 
-        {/* Main Content */}
+        {/* Enhanced Main Content */}
         <div className="profile-main">
           {/* Profile Section */}
           <div
@@ -74,103 +167,276 @@ const Profile: React.FC = () => {
               activeSection === "profile" ? "active" : ""
             }`}
           >
+            {/* Enhanced Profile Header */}
             <div className="profile-header">
-              <h2>Hồ sơ</h2>
-              <div className="profile-avatar">
-                <div
-                  className="avatar-circle"
-                  style={{ width: "60px", height: "60px" }}
-                >
-                  <i className="fas fa-user" style={{ fontSize: "24px" }}></i>
+              <div className="header-content">
+                <h2>Thông tin cá nhân</h2>
+                <p>Quản lý thông tin cá nhân và cài đặt hồ sơ của bạn</p>
+              </div>
+              <div className="header-actions">
+                {!isEditing ? (
+                  <button
+                    className="btn-edit-profile"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <i className="fas fa-edit"></i>
+                    Chỉnh sửa
+                  </button>
+                ) : (
+                  <div className="edit-actions">
+                    <button className="btn-save" onClick={handleSave}>
+                      <i className="fas fa-save"></i>
+                      Lưu
+                    </button>
+                    <button className="btn-cancel" onClick={handleCancel}>
+                      <i className="fas fa-times"></i>
+                      Hủy
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Enhanced Profile Card */}
+            <div className="profile-card">
+              <div className="profile-avatar-section">
+                <div className="avatar-container">
+                  <div className="avatar-circle">
+                    {profileData?.avatar ? (
+                      <img
+                        src={profileData.avatar}
+                        alt={profileData.name}
+                        className="avatar-image"
+                      />
+                    ) : (
+                      <div className="avatar-placeholder">
+                        {profileData?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
+                    )}
+                  </div>
+                  <button className="avatar-upload-btn">
+                    <i className="fas fa-camera"></i>
+                  </button>
                 </div>
                 <div className="avatar-info">
-                  <div className="traveler-badge">
-                    <i className="fas fa-user"></i>
-                    @traveler
+                  <h3 className="user-name">
+                    {profileData?.name || "Chưa có tên"}
+                  </h3>
+                  <p className="user-email">{profileData?.email}</p>
+                  <div className="user-badges">
+                    {profileData?.isPremium && (
+                      <span className="premium-badge">
+                        <i className="fas fa-crown"></i>
+                        Premium Member
+                      </span>
+                    )}
+                    <span className="member-badge">
+                      <i className="fas fa-calendar"></i>
+                      Thành viên từ {profileData?.joinDate}
+                    </span>
                   </div>
-                  <p className="avatar-subtitle">(Tài khoản đã xác)</p>
+                </div>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-icon">
+                    <i className="fas fa-plane"></i>
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-number">{profileData?.totalTrips}</div>
+                    <div className="stat-label">Chuyến đi</div>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon">
+                    <i className="fas fa-map-marker-alt"></i>
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-number">
+                      {profileData?.favoriteDestinations}
+                    </div>
+                    <div className="stat-label">Điểm đến yêu thích</div>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon">
+                    <i className="fas fa-star"></i>
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-number">{profileData?.reviews}</div>
+                    <div className="stat-label">Đánh giá</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="profile-form">
-              <div className="form-group">
-                <label htmlFor="name">Tên</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                />
+            {/* Profile Information */}
+            <div className="profile-info-section">
+              <div className="section-header">
+                <h3>Thông tin chi tiết</h3>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="lastName">Họ</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                />
-              </div>
+              {isEditing ? (
+                <div className="profile-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="name">Họ và tên</label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={editFormData.name}
+                        onChange={handleInputChange}
+                        placeholder="Nhập họ và tên"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="email">Email</label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={editFormData.email}
+                        onChange={handleInputChange}
+                        placeholder="Nhập email"
+                      />
+                    </div>
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="username">Tên người dùng</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                />
-              </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="phone">Số điện thoại</label>
+                      <input
+                        type="text"
+                        id="phone"
+                        name="phone"
+                        value={editFormData.phone}
+                        onChange={handleInputChange}
+                        placeholder="Nhập số điện thoại"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="location">Địa chỉ</label>
+                      <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value={editFormData.location}
+                        onChange={handleInputChange}
+                        placeholder="Nhập địa chỉ"
+                      />
+                    </div>
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="website">Website</label>
-                <input
-                  type="text"
-                  id="website"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                />
-              </div>
+                  <div className="form-group">
+                    <label htmlFor="website">Website</label>
+                    <input
+                      type="url"
+                      id="website"
+                      name="website"
+                      value={editFormData.website}
+                      onChange={handleInputChange}
+                      placeholder="https://example.com"
+                    />
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="location">Nơi ở</label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                />
-              </div>
+                  <div className="form-group">
+                    <label htmlFor="bio">Giới thiệu bản thân</label>
+                    <textarea
+                      id="bio"
+                      name="bio"
+                      value={editFormData.bio}
+                      onChange={handleInputChange}
+                      rows={4}
+                      placeholder="Hãy giới thiệu về bản thân bạn..."
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="profile-info-grid">
+                  <div className="info-card">
+                    <div className="info-icon">
+                      <i className="fas fa-user"></i>
+                    </div>
+                    <div className="info-content">
+                      <div className="info-label">Họ và tên</div>
+                      <div className="info-value">
+                        {profileData?.name || "Chưa có thông tin"}
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="bio">Mô tả</label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleInputChange}
-                  rows={4}
-                  placeholder="Viết một chút về bản thân..."
-                />
-              </div>
+                  <div className="info-card">
+                    <div className="info-icon">
+                      <i className="fas fa-envelope"></i>
+                    </div>
+                    <div className="info-content">
+                      <div className="info-label">Email</div>
+                      <div className="info-value">{profileData?.email}</div>
+                    </div>
+                  </div>
 
-              <div className="form-actions">
-                <button type="button" className="btn-save">
-                  <i className="fas fa-save"></i>
-                  Lưu thay đổi
-                </button>
-                <button type="button" className="btn-cancel">
-                  <i className="fas fa-times"></i>
-                  Hủy
-                </button>
-              </div>
+                  <div className="info-card">
+                    <div className="info-icon">
+                      <i className="fas fa-phone"></i>
+                    </div>
+                    <div className="info-content">
+                      <div className="info-label">Số điện thoại</div>
+                      <div className="info-value">
+                        {profileData?.phone || "Chưa có thông tin"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="info-card">
+                    <div className="info-icon">
+                      <i className="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div className="info-content">
+                      <div className="info-label">Địa chỉ</div>
+                      <div className="info-value">
+                        {profileData?.location || "Chưa có thông tin"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="info-card">
+                    <div className="info-icon">
+                      <i className="fas fa-globe"></i>
+                    </div>
+                    <div className="info-content">
+                      <div className="info-label">Website</div>
+                      <div className="info-value">
+                        {profileData?.website ? (
+                          <a
+                            href={profileData.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {profileData.website}
+                          </a>
+                        ) : (
+                          "Chưa có thông tin"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="info-card full-width">
+                    <div className="info-icon">
+                      <i className="fas fa-quote-left"></i>
+                    </div>
+                    <div className="info-content">
+                      <div className="info-label">Giới thiệu</div>
+                      <div className="info-value bio-text">
+                        {profileData?.bio || "Chưa có thông tin"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -215,23 +481,22 @@ const Profile: React.FC = () => {
             <div className="preferences-content">
               <div className="preference-group">
                 <h3>Loại hình du lịch yêu thích</h3>
-                <div className="checkbox-group">
-                  <label>
-                    <input type="checkbox" />
-                    Du lịch biển
-                  </label>
-                  <label>
-                    <input type="checkbox" />
-                    Du lịch núi
-                  </label>
-                  <label>
-                    <input type="checkbox" />
-                    Du lịch văn hóa
-                  </label>
-                  <label>
-                    <input type="checkbox" />
-                    Du lịch ẩm thực
-                  </label>
+                <div className="travel-types">
+                  {profileData?.preferences?.travelTypes?.length ? (
+                    <div className="selected-types">
+                      {profileData.preferences.travelTypes.map(
+                        (type, index) => (
+                          <span key={index} className="travel-type-tag">
+                            {type}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <p className="no-data">
+                      Chưa có sở thích du lịch nào được thiết lập
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -252,20 +517,57 @@ const Profile: React.FC = () => {
                   <h3>Thông báo email</h3>
                   <p>Nhận thông báo về tour mới qua email</p>
                 </div>
-                <label className="toggle-switch">
-                  <input type="checkbox" />
-                  <span className="slider"></span>
-                </label>
+                <div className="notification-status">
+                  {profileData?.preferences?.notifications?.email ? (
+                    <span className="status-enabled">
+                      <i className="fas fa-check"></i>
+                      Đã bật
+                    </span>
+                  ) : (
+                    <span className="status-disabled">
+                      <i className="fas fa-times"></i>
+                      Đã tắt
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="notification-item">
                 <div className="notification-info">
-                  <h3>Thông báo khuyến mãi</h3>
-                  <p>Nhận thông báo về các chương trình khuyến mãi</p>
+                  <h3>Thông báo push</h3>
+                  <p>Nhận thông báo push trên thiết bị</p>
                 </div>
-                <label className="toggle-switch">
-                  <input type="checkbox" />
-                  <span className="slider"></span>
-                </label>
+                <div className="notification-status">
+                  {profileData?.preferences?.notifications?.push ? (
+                    <span className="status-enabled">
+                      <i className="fas fa-check"></i>
+                      Đã bật
+                    </span>
+                  ) : (
+                    <span className="status-disabled">
+                      <i className="fas fa-times"></i>
+                      Đã tắt
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="notification-item">
+                <div className="notification-info">
+                  <h3>Thông báo SMS</h3>
+                  <p>Nhận thông báo qua tin nhắn SMS</p>
+                </div>
+                <div className="notification-status">
+                  {profileData?.preferences?.notifications?.sms ? (
+                    <span className="status-enabled">
+                      <i className="fas fa-check"></i>
+                      Đã bật
+                    </span>
+                  ) : (
+                    <span className="status-disabled">
+                      <i className="fas fa-times"></i>
+                      Đã tắt
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>

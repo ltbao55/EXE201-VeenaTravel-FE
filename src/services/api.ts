@@ -37,6 +37,23 @@ export interface AuthResponse {
   refreshToken?: string;
 }
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  phone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  preferences?: {
+    language: string;
+    theme: string;
+    notifications: boolean;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // Create axios instance
 class ApiClient {
   private client: any;
@@ -153,6 +170,28 @@ class ApiClient {
     return this.request<T>({ ...config, method: "DELETE", url });
   }
 }
+
+// Profile service methods
+export const profileService = {
+  // Get user profile
+  async getProfile(): Promise<ApiResponse<UserProfile>> {
+    return apiClient.get<UserProfile>("/auth/profile");
+  },
+
+  // Update user profile
+  async updateProfile(
+    profileData: Partial<UserProfile>
+  ): Promise<ApiResponse<UserProfile>> {
+    return apiClient.put<UserProfile>("/auth/profile", profileData);
+  },
+
+  // Update user preferences
+  async updatePreferences(
+    preferences: UserProfile["preferences"]
+  ): Promise<ApiResponse<UserProfile>> {
+    return apiClient.put<UserProfile>("/auth/profile", { preferences });
+  },
+};
 
 // Export singleton instance
 export const apiClient = new ApiClient();
