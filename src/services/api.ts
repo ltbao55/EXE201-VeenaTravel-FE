@@ -81,24 +81,37 @@ class ApiClient {
       (response: AxiosResponse) => {
         return response;
       },
-      (error: any) => {
+      async (error: any) => {
         // Handle 401 errors (unauthorized)
         if (error.response?.status === 401) {
           localStorage.removeItem("authToken");
           localStorage.removeItem("userData");
           window.location.href = "/";
         }
+        
+        // Retry mechanism for network errors
+        if (error.code === 'NETWORK_ERROR' || error.message?.includes('ERR_FAILED')) {
+          console.warn('[ApiClient] Network error detected, will retry:', error.message);
+        }
+        
         return Promise.reject(error);
       }
     );
   }
 
-  // Generic request method
-  async request<T = any>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  // Generic request method with retry
+  async request<T = any>(config: AxiosRequestConfig, retries: number = 2): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.request(config);
       return response.data;
     } catch (error: any) {
+      // Retry for network errors
+      if (retries > 0 && (error.code === 'NETWORK_ERROR' || error.message?.includes('ERR_FAILED'))) {
+        console.log(`[ApiClient] Retrying request (${3 - retries + 1}/3):`, config.url);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        return this.request<T>(config, retries - 1);
+      }
+      
       // Handle network errors or server errors
       if (error.response) {
         // Server responded with error status

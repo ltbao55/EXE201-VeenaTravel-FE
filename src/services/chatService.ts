@@ -19,6 +19,11 @@ export interface ChatMessageDTO {
 export interface ChatSendResponse {
   sessionId: string;
   messages: ChatMessageDTO[];
+  payload?: {
+    conversationId?: string;
+    locations?: any[];
+    itinerary?: any;
+  };
 }
 
 export interface ChatSession {
@@ -136,7 +141,35 @@ export class ChatService {
     } as any;
 
     const url = `${API_ENDPOINTS.CHAT.SEND}/message`;
-    const res = await apiClient.post<any>(url, payload);
+    const CHAT_TIMEOUT_MS = 60000; // Allow slow BE response
+    const MAX_RETRIES = 1; // one light retry
+    const RETRY_DELAY_MS = 1500;
+    let res: any;
+    let attempt = 0;
+    while (true) {
+      try {
+        res = await apiClient.post<any>(url, payload, { timeout: CHAT_TIMEOUT_MS });
+        break;
+      } catch (e: any) {
+        attempt++;
+        if (attempt > MAX_RETRIES) {
+          // Persist minimal payload under provided temp conversation id to avoid 'unknown'
+          try {
+            const tempConvId = payload.conversationId || `temp_${Date.now()}`;
+            const lastPayload = {
+              conversationId: tempConvId,
+              locations: [],
+              itinerary: null,
+              savedAt: new Date().toISOString(),
+            };
+            localStorage.setItem(`chat:lastPayload:${tempConvId}`, JSON.stringify(lastPayload));
+          } catch {}
+          throw e;
+        }
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+      }
+    }
+    
     console.log("[ChatService.send] response", res);
 
     // Log BE-provided locations and itinerary coordinates (for markers) – preview only
@@ -211,6 +244,11 @@ export class ChatService {
           content: responseText,
         },
       ],
+      payload: {
+        conversationId,
+        locations: (res as any)?.data?.locations || [],
+        itinerary: (res as any)?.data?.itinerary || null,
+      },
     };
     // Update local cache for history list (assumes one user msg + one bot msg)
     const firstUserText = request.message;

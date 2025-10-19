@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: "http://localhost:5001/api",
-  TIMEOUT: 10000,
+  TIMEOUT: 60000, // Increased to 60 seconds for very slow backend
   HEADERS: {
     "Content-Type": "application/json",
   },
@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
     LOGIN: "/auth/login",
     REGISTER: "/auth/register",
     LOGOUT: "/auth/logout",
-    ME: "/auth/me",
+    ME: "/auth/profile", // Fixed: use /auth/profile instead of /auth/me
     PROFILE: "/auth/profile",
     REFRESH: "/auth/refresh",
   },

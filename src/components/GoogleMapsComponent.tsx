@@ -180,6 +180,13 @@ const GoogleMapsComponent: React.FC<GoogleMapsComponentProps> = ({
   useEffect(() => {
     if (!mapInstanceRef.current || !window.google) return;
 
+    try {
+      console.log(
+        "[GoogleMaps] Updating markers. Incoming:",
+        Array.isArray(markers) ? markers.length : 0
+      );
+    } catch {}
+
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
@@ -263,6 +270,13 @@ const GoogleMapsComponent: React.FC<GoogleMapsComponentProps> = ({
 
       markersRef.current.push(marker);
     });
+
+    try {
+      console.log(
+        "[GoogleMaps] Applied markers to map:",
+        markersRef.current.length
+      );
+    } catch {}
   }, [markers, onMarkerClick]);
 
   // Update map center and zoom when props change

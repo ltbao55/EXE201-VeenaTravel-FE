@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import LeftSidebar from "../components/LeftSidebar";
 import ChatHistorySidebar from "../components/ChatHistorySidebar";
 import GoogleMapsComponent from "../components/GoogleMapsComponent";
@@ -11,6 +17,15 @@ declare global {
   interface Window {
     google: any;
   }
+}
+
+// Session Map State Interface
+interface SessionMapState {
+  sessionId: string;
+  markers: any[];
+  center: { lat: number; lng: number };
+  zoom: number;
+  lastUpdated: string;
 }
 
 const ChatPage: React.FC = () => {
@@ -37,9 +52,12 @@ const ChatPage: React.FC = () => {
 
   // Dynamic markers from Google Maps API
   const [mapMarkers, setMapMarkers] = useState<any[]>([]);
-  const [mapCenter] = useState({ lat: 10.7769, lng: 106.6951 });
-  const [mapZoom] = useState(13);
-  const [currentLocation] = useState<any>(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 10.7769, lng: 106.6951 });
+  const [mapZoom, setMapZoom] = useState(13);
+  const [currentLocation, setCurrentLocation] = useState<any>(null);
+  
+  // Session-based map state management
+  const [sessionMapStates, setSessionMapStates] = useState<Record<string, SessionMapState>>({});
   // const [isUpdatingMap] = useState(false);
   const [hasLoadedInitialSession, setHasLoadedInitialSession] = useState(false);
   const locationsLoggedRef = useRef(false);
@@ -51,6 +69,207 @@ const ChatPage: React.FC = () => {
     const anyUser: any = user as any;
     return (anyUser?.id ?? anyUser?._id ?? anyUser?.uid) as string | undefined;
   }, [user]);
+
+  // Save map state for a session
+  const saveMapStateForSession = useCallback((sessionId: string, markers: any[], center: {lat: number, lng: number}, zoom: number = 13) => {
+    const mapState: SessionMapState = {
+      sessionId,
+      markers,
+      center,
+      zoom,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    setSessionMapStates(prev => ({
+      ...prev,
+      [sessionId]: mapState
+    }));
+    
+    // Save to localStorage with user-specific key for persistence
+    const storageKey = `mapState:${currentUserId}:${sessionId}`;
+    localStorage.setItem(storageKey, JSON.stringify(mapState));
+    console.log(`🗺️ 💾 SAVED map state for session: ${sessionId}`, { 
+      markers: markers.length, 
+      center,
+      zoom,
+      timestamp: mapState.lastUpdated,
+      storageKey
+    });
+    
+    // Debug: verify what was saved
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      console.log(`🗺️ ✅ VERIFIED saved state:`, {
+        sessionId: parsed.sessionId,
+        markersCount: parsed.markers?.length,
+        center: parsed.center,
+        zoom: parsed.zoom,
+        firstMarker: parsed.markers?.[0] ? {
+          title: parsed.markers[0].title,
+          lat: parsed.markers[0].lat,
+          lng: parsed.markers[0].lng
+        } : null
+      });
+    }
+  }, [currentUserId]);
+
+  // Helper function to build markers from payload (moved from inline)
+  const buildMarkersFromPayload = useCallback((payload: any) => {
+        if (!payload) return [] as any[];
+        console.log("[Markers] Build from payload:", {
+          hasLocations: Array.isArray(payload?.locations),
+          hasItinerary: !!payload?.itinerary,
+        });
+        const fromLocations = Array.isArray(payload?.locations)
+          ? payload.locations
+              .filter(
+                (loc: any) =>
+                  loc &&
+                  loc.coordinates &&
+                  typeof loc.coordinates.lat === "number" &&
+                  typeof loc.coordinates.lng === "number"
+              )
+              .map((loc: any, i: number) => ({
+                id: loc.id || `loc-${i}`,
+                lat: Number(loc.coordinates.lat),
+                lng: Number(loc.coordinates.lng),
+                title: String(loc.name || loc.address || "Địa điểm"),
+                description: loc.description,
+                type: loc.type || loc.category || "place",
+              }))
+          : [];
+        if (fromLocations.length) {
+          console.log(
+            "[Markers] Locations (with coords)",
+            fromLocations.length,
+            fromLocations
+              .slice(0, 10)
+              .map((m: any) => ({ title: m.title, lat: m.lat, lng: m.lng }))
+          );
+        }
+
+        const itin = payload?.itinerary;
+        const fromItin: any[] = [];
+        if (itin && Array.isArray(itin.days)) {
+          itin.days.forEach((day: any, dayIdx: number) => {
+            if (Array.isArray(day?.activities)) {
+              day.activities.forEach((act: any, actIdx: number) => {
+                const c = act?.coordinates;
+                if (
+                  c &&
+                  typeof c.lat === "number" &&
+                  typeof c.lng === "number"
+                ) {
+                  fromItin.push({
+                    id: act.id || `itin-${dayIdx + 1}-${actIdx + 1}`,
+                    lat: Number(c.lat),
+                    lng: Number(c.lng),
+                    title: String(act.title || act.location || "Hoạt động"),
+                    description: act.description,
+                    type: act.type || "activity",
+                  });
+                }
+              });
+            }
+          });
+        }
+        if (fromItin.length) {
+          console.log(
+            "[Markers] Itinerary activities (with coords)",
+            fromItin.length,
+            fromItin
+              .slice(0, 10)
+              .map((m: any) => ({ title: m.title, lat: m.lat, lng: m.lng }))
+          );
+        }
+
+        const merged = [...fromLocations, ...fromItin];
+        const seen = new Set<string>();
+        const unique = [] as any[];
+        for (const m of merged) {
+          const key = `${m.title}|${m.lat.toFixed(6)}|${m.lng.toFixed(6)}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(m);
+          }
+          if (unique.length >= 30) break;
+        }
+        console.log("[Markers] Unique markers count:", unique.length);
+        return unique;
+  }, []);
+
+  // Load map state for a session
+  const loadMapStateForSession = useCallback(async (sessionId: string) => {
+    console.log(`🗺️ Loading map state for session: ${sessionId}`);
+    
+    // Try to load from localStorage first (most reliable) with user-specific key
+    const localStorageKey = `mapState:${currentUserId}:${sessionId}`;
+    const savedFromStorage = localStorage.getItem(localStorageKey);
+    console.log(`🗺️ Checking localStorage for key: ${localStorageKey}`, { exists: !!savedFromStorage });
+    
+    if (savedFromStorage) {
+      try {
+        const mapState = JSON.parse(savedFromStorage);
+        console.log(`🗺️ Parsed map state:`, { 
+          sessionId: mapState.sessionId, 
+          markersCount: mapState.markers?.length,
+          center: mapState.center,
+          zoom: mapState.zoom 
+        });
+        
+        if (mapState.markers && mapState.center) {
+          setMapMarkers(mapState.markers);
+          setMapCenter(mapState.center);
+          setMapZoom(mapState.zoom || 13);
+          console.log(`🗺️ ✅ Loaded map state from localStorage for session: ${sessionId}`, { markers: mapState.markers.length });
+          return;
+        } else {
+          console.log(`🗺️ ❌ Invalid map state data for session: ${sessionId}`);
+        }
+      } catch (error) {
+        console.warn('Failed to parse saved map state:', error);
+      }
+    } else {
+      console.log(`🗺️ ❌ No saved map state found for session: ${sessionId}`);
+    }
+    
+    // Try to load from memory
+    const savedState = sessionMapStates[sessionId];
+    if (savedState && savedState.markers && savedState.center) {
+      setMapMarkers(savedState.markers);
+      setMapCenter(savedState.center);
+      setMapZoom(savedState.zoom);
+      console.log(`🗺️ Loaded saved map state for session: ${sessionId}`, { markers: savedState.markers.length });
+      return;
+    }
+    
+    // Try to load from session messages
+    try {
+      const session = await ChatService.getChatSession(sessionId);
+      if (session?.messages) {
+        // Find last bot message with payload
+        const lastBotMessage = session.messages
+          .filter((msg: any) => msg.role === 'assistant')
+          .pop();
+        
+        if (lastBotMessage?.payload) {
+          const markers = buildMarkersFromPayload(lastBotMessage.payload);
+          if (markers.length > 0) {
+            setMapMarkers(markers);
+            setMapCenter(markers[0]);
+            setMapZoom(13);
+            
+            // Save this state
+            saveMapStateForSession(sessionId, markers, markers[0]);
+            console.log(`🗺️ Loaded map from session messages for session: ${sessionId}`, { markers: markers.length });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load map from session messages:', error);
+    }
+  }, [sessionMapStates, saveMapStateForSession, buildMarkersFromPayload, currentUserId]);
 
   const handleSendMessage = async () => {
     if (!isAuthenticated) {
@@ -69,17 +288,39 @@ const ChatPage: React.FC = () => {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
 
+    // Prepare a temporary session id to keep UI consistent while waiting for BE
+    const tempSessionId = sessionId || `temp_${Date.now()}`;
+    if (!sessionId) {
+      setSessionId(tempSessionId);
+      setSelectedSessionId(tempSessionId);
+    }
+
     try {
       setIsBotTyping(true);
       sendingRef.current = true;
       const data = await ChatService.send({
         message: text,
-        sessionId,
+        sessionId: tempSessionId,
         userId: currentUserId,
       });
 
-      setSessionId(data.sessionId);
-      setSelectedSessionId(data.sessionId);
+      // If backend returns a different (real) sessionId, migrate from temp → real
+      if (data.sessionId && data.sessionId !== tempSessionId) {
+        try {
+          const oldKey = `chat:lastPayload:${tempSessionId}`;
+          const newKey = `chat:lastPayload:${data.sessionId}`;
+          const old = localStorage.getItem(oldKey);
+          if (old && !localStorage.getItem(newKey)) {
+            const parsed = JSON.parse(old);
+            parsed.conversationId = data.sessionId;
+            localStorage.setItem(newKey, JSON.stringify(parsed));
+          }
+          localStorage.removeItem(oldKey);
+        } catch {}
+      }
+
+      setSessionId(data.sessionId || tempSessionId);
+      setSelectedSessionId(data.sessionId || tempSessionId);
 
       // append bot messages
       const botMsgs = data.messages
@@ -91,6 +332,76 @@ const ChatPage: React.FC = () => {
         }));
       if (botMsgs.length) {
         setMessages((prev) => [...prev, ...botMsgs]);
+      }
+
+      // After chat completes: update map markers
+      // 1) Try immediate payload from response
+
+      let appliedImmediate = false;
+      let finalMarkers: any[] = [];
+      let finalCenter: {lat: number, lng: number} | null = null;
+      
+      try {
+        const immediate = buildMarkersFromPayload((data as any)?.payload);
+        if (immediate.length) {
+          setMapMarkers(immediate);
+          console.log(
+            "[Markers] Applied immediate payload markers:",
+            immediate.length
+          );
+          const first = immediate[0];
+          if (first?.lat && first?.lng) {
+            setMapCenter({ lat: first.lat, lng: first.lng });
+            setMapZoom((z) => (z < 5 || z > 18 ? 13 : z));
+            console.log("[Markers] Center map to first marker:", first);
+            finalMarkers = immediate;
+            finalCenter = { lat: first.lat, lng: first.lng };
+          }
+          appliedImmediate = true;
+        }
+      } catch {}
+
+      // 2) Fallback: update map markers from BE structured payload persisted by ChatService
+      try {
+        const storageKey = `chat:lastPayload:${
+          data.sessionId || tempSessionId
+        }`;
+        const raw = localStorage.getItem(storageKey);
+        if (raw && !appliedImmediate) {
+          const parsed = JSON.parse(raw);
+          const unique = buildMarkersFromPayload(parsed);
+          if (unique.length) {
+            setMapMarkers(unique);
+            const first = unique[0];
+            if (first && first.lat && first.lng) {
+              setMapCenter({ lat: first.lat, lng: first.lng });
+              setMapZoom((z) => (z < 5 || z > 18 ? 13 : z));
+              console.log("[Markers] Applied fallback markers:", unique.length);
+              console.log("[Markers] Center map to first marker:", first);
+              finalMarkers = unique;
+              finalCenter = { lat: first.lat, lng: first.lng };
+            }
+          }
+        }
+      } catch (markerErr) {
+        console.warn(
+          "[ChatPage] Failed to update markers from payload:",
+          markerErr
+        );
+      }
+
+      // Save map state for this session
+      const currentSessionId = data.sessionId || tempSessionId;
+      if (finalMarkers.length > 0 && finalCenter) {
+        // Save new markers from this response
+        saveMapStateForSession(currentSessionId, finalMarkers, finalCenter);
+        console.log(`🗺️ Saved NEW map state for session: ${currentSessionId}`, { 
+          markers: finalMarkers.length, 
+          center: finalCenter 
+        });
+      } else {
+        // No new markers from this response - don't save old markers
+        console.log(`🗺️ No new markers for session: ${currentSessionId}, not saving old state`);
       }
     } catch (err: any) {
       console.error("[ChatPage] send error", err);
@@ -109,6 +420,11 @@ const ChatPage: React.FC = () => {
       setMessages([]);
       setSessionId(undefined);
       setShowChatHistory(false);
+      // Reset map to default
+      setMapMarkers([]);
+      setMapCenter({ lat: 10.7769, lng: 106.6951 });
+      setMapZoom(13);
+      console.log("🗺️ Reset map for new chat");
       return;
     }
 
@@ -127,11 +443,84 @@ const ChatPage: React.FC = () => {
         );
         setMessages(frontendMessages);
         setSessionId(sessionId);
+        
+        // Load map state for this session
+        console.log(`🗺️ 🔄 Switching to session: ${sessionId}`);
+        await loadMapStateForSession(sessionId);
+        console.log(`🗺️ ✅ Completed loading session: ${sessionId}`);
+        
         // Tự động đóng panel lịch sử để hiển thị nội dung chat
         setShowChatHistory(false);
       }
     } catch (error) {
       console.error("[ChatPage] Failed to load session:", error);
+      
+      // Handle specific error cases
+      if (error.message?.includes('Network error') || error.message?.includes('CORS')) {
+        console.warn("[ChatPage] Backend connection issue, trying to load from localStorage only");
+        
+        // Try to load map state from localStorage even if session load failed
+        try {
+          await loadMapStateForSession(sessionId);
+          console.log(`🗺️ ✅ Loaded map state from localStorage despite session load failure`);
+        } catch (mapError) {
+          console.warn("[ChatPage] Could not load map state either:", mapError);
+        }
+        
+        // Try to load messages from localStorage as fallback
+        try {
+          const localStorageKey = `chat:lastPayload:${sessionId}`;
+          const savedPayload = localStorage.getItem(localStorageKey);
+          if (savedPayload) {
+            const payload = JSON.parse(savedPayload);
+            console.log("[ChatPage] Found saved payload for session:", sessionId);
+            
+            // Create mock messages from payload if available
+            const mockMessages = [
+              { id: `${sessionId}-0`, type: "user", content: "User message" },
+              { id: `${sessionId}-1`, type: "bot", content: "AI response with locations and itinerary" }
+            ];
+            setMessages(mockMessages);
+            setSessionId(sessionId);
+            console.log("[ChatPage] Loaded mock messages from localStorage");
+          } else {
+            // Try to find session info from chat history
+            const chatHistoryKey = `chatSessions:${currentUserId}`;
+            const savedHistory = localStorage.getItem(chatHistoryKey);
+            if (savedHistory) {
+              const history = JSON.parse(savedHistory);
+              const sessionInfo = history.sessions?.find((s: any) => s.sessionId === sessionId);
+              if (sessionInfo) {
+                console.log("[ChatPage] Found session info in chat history:", sessionInfo);
+                setSessionId(sessionId);
+                // Create basic messages from session info
+                const basicMessages = [
+                  { id: `${sessionId}-0`, type: "user", content: "Previous conversation" },
+                  { id: `${sessionId}-1`, type: "bot", content: "AI response with travel suggestions" }
+                ];
+                setMessages(basicMessages);
+                console.log("[ChatPage] Loaded basic messages from chat history");
+              }
+            }
+          }
+        } catch (payloadError) {
+          console.warn("[ChatPage] Failed to load from localStorage:", payloadError);
+        }
+        
+        // Don't clear messages and sessionId on network errors - keep current state
+        console.log("[ChatPage] Keeping current chat state due to network error");
+        setShowChatHistory(false);
+        return;
+      } else {
+        // For other errors, still try to load map state
+        try {
+          await loadMapStateForSession(sessionId);
+        } catch (mapError) {
+          console.warn("[ChatPage] Could not load map state:", mapError);
+        }
+      }
+      
+      // Only clear messages for non-network errors
       setMessages([]);
       setSessionId(undefined);
     }
@@ -142,6 +531,15 @@ const ChatPage: React.FC = () => {
       handleSendMessage();
     }
   };
+
+  // Stable map callbacks to avoid re-initializing map while typing
+  const handleMapMarkerClick = useCallback((marker: any) => {
+    console.log("Marker clicked:", marker);
+  }, []);
+
+  const handleMapClickStable = useCallback((lat: number, lng: number) => {
+    console.log("Map clicked at:", lat, lng);
+  }, []);
 
   // Feature flag: disable auto-updating map from messages (only show base map)
   // const ENABLE_MESSAGE_MAP = false;
@@ -272,6 +670,64 @@ const ChatPage: React.FC = () => {
     defaultLoadedRef.current = true;
     setMapMarkers([]);
   }, []);
+
+  // Load saved map states from localStorage on mount
+  useEffect(() => {
+    const loadSavedMapStates = () => {
+      if (!currentUserId) {
+        console.log('🗺️ No currentUserId, skipping map state load');
+        return;
+      }
+      
+      const savedStates: Record<string, SessionMapState> = {};
+      const userPrefix = `mapState:${currentUserId}:`;
+      
+      // First, try to load user-specific states
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(userPrefix)) {
+          const sessionId = key.replace(userPrefix, '');
+          try {
+            const state = JSON.parse(localStorage.getItem(key) || '{}');
+            if (state.sessionId && state.markers && state.center) {
+              savedStates[sessionId] = state;
+            }
+          } catch (error) {
+            console.warn('Failed to parse saved map state:', error);
+          }
+        }
+      }
+      
+      // If no user-specific states found, try to migrate old format
+      if (Object.keys(savedStates).length === 0) {
+        console.log('🗺️ No user-specific map states found, checking for old format...');
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith('mapState:') && !key.includes(':')) {
+            const sessionId = key.replace('mapState:', '');
+            try {
+              const state = JSON.parse(localStorage.getItem(key) || '{}');
+              if (state.sessionId && state.markers && state.center) {
+                // Migrate to new format
+                const newKey = `mapState:${currentUserId}:${sessionId}`;
+                localStorage.setItem(newKey, JSON.stringify(state));
+                localStorage.removeItem(key); // Remove old key
+                savedStates[sessionId] = state;
+                console.log(`🗺️ Migrated map state: ${key} → ${newKey}`);
+              }
+            } catch (error) {
+              console.warn('Failed to migrate map state:', error);
+            }
+          }
+        }
+      }
+      
+      setSessionMapStates(savedStates);
+      console.log('🗺️ Loaded saved map states for user:', currentUserId, 'count:', Object.keys(savedStates).length);
+    };
+    
+    loadSavedMapStates();
+  }, [currentUserId]);
 
   // Log: load BE-provided structured locations/itinerary from localStorage when viewing latest bot message
   useEffect(() => {
@@ -431,15 +887,75 @@ const ChatPage: React.FC = () => {
 
   // Auto-load latest chat session on mount/auth ready
   useEffect(() => {
+    console.log("[ChatPage] useEffect triggered for auto-load:", { 
+      isAuthenticated, 
+      currentUserId, 
+      hasLoadedInitialSession 
+    });
+    
     const init = async () => {
-      if (!isAuthenticated || !currentUserId || hasLoadedInitialSession) return;
+      console.log("[ChatPage] Auto-load check:", { 
+        isAuthenticated, 
+        currentUserId, 
+        hasLoadedInitialSession 
+      });
+      
+      if (!isAuthenticated || !currentUserId || hasLoadedInitialSession) {
+        console.log("[ChatPage] Auto-load skipped:", {
+          reason: !isAuthenticated ? "not authenticated" : 
+                  !currentUserId ? "no userId" : 
+                  "already loaded"
+        });
+        return;
+      }
 
       // Add a small delay to avoid race condition with ChatHistorySidebar
       const timer = setTimeout(async () => {
         try {
+          console.log("[ChatPage] Fetching chat sessions for user:", currentUserId);
           const list = await ChatService.getChatSessions(currentUserId);
           const sessions = Array.isArray(list.sessions) ? list.sessions : [];
+          console.log("[ChatPage] Found sessions:", sessions.length);
           if (sessions.length === 0) {
+            console.log("[ChatPage] No chat sessions found, checking for any saved map states");
+            // Try to load the most recent map state from localStorage
+            try {
+              const savedStates: Record<string, SessionMapState> = {};
+              const userPrefix = `mapState:${currentUserId}:`;
+              
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key?.startsWith(userPrefix)) {
+                  const sessionId = key.replace(userPrefix, '');
+                  try {
+                    const state = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (state.sessionId && state.markers && state.center) {
+                      savedStates[sessionId] = state;
+                    }
+                  } catch (error) {
+                    console.warn('Failed to parse saved map state:', error);
+                  }
+                }
+              }
+              
+              // Find the most recent map state
+              const sortedStates = Object.values(savedStates).sort((a, b) => 
+                new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+              );
+              
+              if (sortedStates.length > 0) {
+                const latestMapState = sortedStates[0];
+                setMapMarkers(latestMapState.markers);
+                setMapCenter(latestMapState.center);
+                setMapZoom(latestMapState.zoom);
+                console.log(`🗺️ ✅ Loaded most recent map state: ${latestMapState.sessionId}`, { 
+                  markers: latestMapState.markers.length 
+                });
+              }
+            } catch (mapError) {
+              console.warn("[ChatPage] Failed to load fallback map state:", mapError);
+            }
+            
             setHasLoadedInitialSession(true);
             return;
           }
@@ -455,15 +971,21 @@ const ChatPage: React.FC = () => {
             return tb - ta;
           })[0];
 
+          console.log("[ChatPage] Latest session:", latest);
+
           if (!latest?.sessionId) {
+            console.log("[ChatPage] No valid latest session found");
             setHasLoadedInitialSession(true);
             return;
           }
 
           // load messages for latest session
+          console.log("[ChatPage] Loading session detail for:", latest.sessionId);
           const sessionDetail = await ChatService.getChatSession(
             latest.sessionId
           );
+          console.log("[ChatPage] Session detail loaded:", !!sessionDetail, "messages:", sessionDetail?.messages?.length);
+          
           if (sessionDetail && Array.isArray(sessionDetail.messages)) {
             const frontendMessages = sessionDetail.messages.map(
               (msg: any, index: number) => ({
@@ -476,6 +998,15 @@ const ChatPage: React.FC = () => {
             setSessionId(latest.sessionId);
             setSelectedSessionId(latest.sessionId);
             setShowChatHistory(false);
+            
+            // Load map state for the latest session
+            console.log(`🗺️ 🔄 Auto-loading latest session: ${latest.sessionId}`);
+            try {
+              await loadMapStateForSession(latest.sessionId);
+              console.log(`🗺️ ✅ Auto-loaded map state for latest session: ${latest.sessionId}`);
+            } catch (mapError) {
+              console.warn(`🗺️ ⚠️ Failed to load map state for latest session: ${latest.sessionId}`, mapError);
+            }
             // Log all AI messages for inspection on entering chat
             const aiMessages = frontendMessages.filter(
               (m: any) => m.type === "bot"
@@ -495,6 +1026,10 @@ const ChatPage: React.FC = () => {
           setHasLoadedInitialSession(true);
         } catch (e) {
           console.warn("[ChatPage] Failed to load latest session", e);
+          console.log("[ChatPage] Error details:", {
+            message: e.message,
+            stack: e.stack
+          });
           setHasLoadedInitialSession(true);
         }
       }, 1000); // Increase delay to 1 second
@@ -984,13 +1519,16 @@ const ChatPage: React.FC = () => {
                             <circle cx="12" cy="6" r="1" fill="#FF4D85" />
                           </svg>
                         </div>
-                        <div className="message-content">
-                          <div className="formatted-text">
-                            <span className="typing-dots">
-                              <span>.</span>
-                              <span>.</span>
-                              <span>.</span>
-                            </span>
+                        <div className="message-content typing-bubble">
+                          <div className="typing-row">
+                            <span className="typing-dot" />
+                            <span className="typing-dot" />
+                            <span className="typing-dot" />
+                          </div>
+                          <div className="typing-shimmer">
+                            <span className="line l1" />
+                            <span className="line l2" />
+                            <span className="line l3" />
                           </div>
                         </div>
                       </div>
@@ -1054,14 +1592,8 @@ const ChatPage: React.FC = () => {
                 center={mapCenter}
                 zoom={mapZoom}
                 markers={mapMarkers}
-                onMarkerClick={(marker) => {
-                  console.log("Marker clicked:", marker);
-                  // You can add more functionality here, like showing place details
-                }}
-                onMapClick={(lat, lng) => {
-                  console.log("Map clicked at:", lat, lng);
-                  // You can add functionality to search nearby places when clicking on map
-                }}
+                onMarkerClick={handleMapMarkerClick}
+                onMapClick={handleMapClickStable}
               />
             </div>
           </div>
