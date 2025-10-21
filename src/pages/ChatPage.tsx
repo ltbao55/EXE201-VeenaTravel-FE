@@ -1193,18 +1193,33 @@ const ChatPage: React.FC = () => {
               </svg>
               {showChatHistory ? "Quay lại chat" : "Lịch sử chat"}
             </button>
+            <button
+              className="btn-new-chat"
+              onClick={() => handleSelectSession("")}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 5v14M5 12h14"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Chat mới
+            </button>
             <div className="chat-header-actions">
               <div className="qp-compact">
                 <button className="qp-pill" onClick={() => setQpOpen("where")}>
-                  {qpDestination ? qpDestination : "Where"}
+                  {qpDestination ? qpDestination : "Đi đâu"}
                 </button>
                 <div className="qp-pill-divider" />
                 <button className="qp-pill" onClick={() => setQpOpen("when")}>
-                  {qpDays ? `${qpDays} days` : "When"}
+                  {qpDays ? `${qpDays} ngày` : "Khi nào"}
                 </button>
                 <div className="qp-pill-divider" />
                 <button className="qp-pill" onClick={() => setQpOpen("who")}>
-                  {qpTravelers} travelers
+                  {qpTravelers} người
                 </button>
                 <div className="qp-pill-divider" />
                 <button className="qp-pill" onClick={() => setQpOpen("budget")}>
@@ -1214,25 +1229,11 @@ const ChatPage: React.FC = () => {
                       : qpBudget === "balanced"
                       ? "$$"
                       : "$$$"
-                    : "Budget"}
+                    : "Ngân sách"}
                 </button>
               </div>
               <button className="qp-plan-btn" onClick={handleQuickPlan}>
                 Lên lịch trình
-              </button>
-              <button
-                className="btn-new-chat"
-                onClick={() => handleSelectSession("")}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 5v14M5 12h14"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                New chat
               </button>
             </div>
           </div>
