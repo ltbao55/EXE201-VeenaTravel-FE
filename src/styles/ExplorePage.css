@@ -5,12 +5,43 @@
   background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%);
 }
 
+/* Chat Container - Ensure proper flex layout */
+.explore-page .chat-container {
+  display: flex !important;
+  height: 100vh !important;
+  flex-direction: row !important;
+}
+
+/* Left Sidebar - Ensure same size as ChatPage */
+.explore-page .left-sidebar {
+  width: 250px !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 77, 133, 0.05) 25%,
+    rgba(255, 107, 157, 0.08) 50%,
+    rgba(255, 77, 133, 0.1) 100%
+  ) !important;
+  backdrop-filter: blur(25px) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+  border-right: 1px solid rgba(255, 77, 133, 0.15) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  box-shadow: 0 8px 32px rgba(255, 77, 133, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  flex-shrink: 0 !important;
+  z-index: 10 !important;
+}
+
 .explore-main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   height: 100vh;
   gap: 0;
   background: transparent;
+  flex: 1;
+  min-width: 0;
 }
 
 .explore-content {
@@ -623,7 +654,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: 400px;
+  width: 800px;
   height: 100vh;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
@@ -708,7 +739,7 @@
 }
 
 .detail-content {
-  padding: 0 20px 20px;
+  padding: 0 24px 24px;
 }
 
 .place-header {
