@@ -54,7 +54,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const unsubscribe = FirebaseAuthService.onAuthStateChanged(
           async (firebaseUser) => {
             if (firebaseUser) {
-              // User is signed in with Firebase
+              // User is signed in with Firebase - get fresh token
+              const token = await firebaseUser.getIdToken();
+              localStorage.setItem("authToken", token);
+
               const userData: User = {
                 id: firebaseUser.uid,
                 name:
@@ -66,6 +69,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 isPremium: false,
                 isGoogleUser: true,
               };
+
+              localStorage.setItem("userData", JSON.stringify(userData));
               setUser(userData);
               setIsLoading(false);
             } else {
@@ -147,6 +152,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const firebaseUser = await FirebaseAuthService.signInWithGooglePopup();
 
+      // Get Firebase ID token to use for backend authentication
+      const token = await firebaseUser.getIdToken();
+
+      // Store token in localStorage
+      localStorage.setItem("authToken", token);
+
       // Create user object from Firebase user
       const userData: User = {
         id: firebaseUser.uid,
@@ -159,6 +170,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isPremium: false,
         isGoogleUser: true,
       };
+
+      // Store user data
+      localStorage.setItem("userData", JSON.stringify(userData));
 
       setUser(userData);
       setShowAuthModal(false);

@@ -41,18 +41,18 @@ export const API_ENDPOINTS = {
     SEND: "/chat",
     HISTORY: "/chat/history",
   },
-  
+
   // Chat Sessions
   CHAT_SESSIONS: {
-    LIST: '/chat-sessions',
-    DETAIL: '/chat-sessions/:id',
-    BY_SESSION_ID: '/chat-sessions/session/:sessionId',
-    USER_SESSIONS: '/chat-sessions/user/:userId',
-    CREATE: '/chat-sessions',
-    UPDATE: '/chat-sessions/:id',
-    DELETE: '/chat-sessions/:id',
+    LIST: "/chat-sessions",
+    DETAIL: "/chat-sessions/:id",
+    BY_SESSION_ID: "/chat-sessions/session/:sessionId",
+    USER_SESSIONS: "/chat-sessions/user/:userId",
+    CREATE: "/chat-sessions",
+    UPDATE: "/chat-sessions/:id",
+    DELETE: "/chat-sessions/:id",
   },
-  
+
   // User
   USER: {
     PROFILE: "/user/profile",
@@ -67,6 +67,14 @@ export const API_ENDPOINTS = {
     DETAIL: "/users/:id",
     UPDATE: "/users/:id",
     DELETE: "/users/:id",
+  },
+
+  // Payments
+  PAYMENTS: {
+    CREATE: "/payments/create",
+    INFO: "/payments/info/:orderCode",
+    USER_PAYMENTS: "/payments/user-payments",
+    CANCEL: "/payments/cancel/:orderCode",
   },
 };
 

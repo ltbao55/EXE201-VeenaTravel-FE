@@ -19,21 +19,13 @@ export interface FirebaseAuthUser {
 
 export class FirebaseAuthService {
   // Sign in with Google using popup
-  static async signInWithGooglePopup(): Promise<FirebaseAuthUser> {
+  static async signInWithGooglePopup(): Promise<FirebaseUser> {
     try {
       const result: UserCredential = await signInWithPopup(
         auth,
         googleProvider
       );
-      const user = result.user;
-
-      return {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        emailVerified: user.emailVerified,
-      };
+      return result.user;
     } catch (error: any) {
       console.error("Google sign-in error:", error);
 

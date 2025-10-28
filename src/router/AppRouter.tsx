@@ -6,6 +6,7 @@ import ProfilePage from "../pages/ProfilePage";
 import DashboardPage from "../pages/DashboardPage";
 import ServicesPage from "../pages/ServicesPage";
 import Payment from "../components/Payment/Payment";
+import PaymentReturn from "../components/Payment/PaymentReturn";
 
 const AppRouter = () => {
   return (
@@ -18,6 +19,7 @@ const AppRouter = () => {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/payment/return" element={<PaymentReturn />} />
       </Routes>
     </Router>
   );

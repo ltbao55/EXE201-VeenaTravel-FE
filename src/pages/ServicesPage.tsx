@@ -1,20 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
 import AuthModal from "../components/auth/AuthModal";
+import PaymentService from "../services/paymentService";
 import "../styles/ServicesPage.css";
 
 const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { showAuthModal, closeAuthModal, authMode } = useAuth();
+  const { showAuthModal, closeAuthModal, authMode, isAuthenticated } =
+    useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleGetStarted = (planType: string) => {
-    if (planType === "premium") {
-      navigate("/payment");
-    } else {
+  const handleGetStarted = async (planType: string) => {
+    if (planType === "free") {
       navigate("/chat");
+      return;
+    }
+
+    if (planType === "premium") {
+      if (!isAuthenticated) {
+        // Show auth modal or redirect to login
+        navigate("/");
+        return;
+      }
+
+      // Create payment for premium package
+      setLoading(true);
+      setError("");
+
+      try {
+        const paymentData = {
+          amount: 39000, // 39K VND
+          description: "Đăng ký gói Premium VeenaTravel - 30 ngày",
+          items: [
+            {
+              name: "Premium VeenaTravel",
+              quantity: 1,
+              price: 39000,
+            },
+          ],
+          metadata: {
+            returnUrl: window.location.origin + "/payment/return",
+          },
+        };
+
+        const payment = await PaymentService.createPayment(paymentData);
+
+        // Redirect to payment page with orderCode
+        navigate(`/payment?orderCode=${payment.orderCode}`);
+      } catch (err: any) {
+        console.error("Error creating payment:", err);
+        setError(err.message || "Không thể tạo thanh toán");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -86,6 +128,7 @@ const ServicesPage: React.FC = () => {
               <button
                 className="plan-button free-button"
                 onClick={() => handleGetStarted("free")}
+                disabled={loading}
               >
                 Bắt đầu ngay
               </button>
@@ -150,9 +193,33 @@ const ServicesPage: React.FC = () => {
               <button
                 className="plan-button premium-button"
                 onClick={() => handleGetStarted("premium")}
+                disabled={loading}
               >
-                Đăng ký gói
+                {loading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    Đang tạo thanh toán...
+                  </>
+                ) : (
+                  "Đăng ký gói"
+                )}
               </button>
+
+              {/* Error Message */}
+              {error && (
+                <div
+                  style={{
+                    marginTop: "1rem",
+                    padding: "1rem",
+                    background: "#fee",
+                    color: "#c33",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {error}
+                </div>
+              )}
 
               <div className="plan-note">
                 <a href="#" className="learn-more">
