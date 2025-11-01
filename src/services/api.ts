@@ -27,6 +27,7 @@ export interface User {
   email: string;
   avatar?: string;
   isPremium?: boolean;
+  role?: "user" | "admin";
   createdAt?: string;
   updatedAt?: string;
 }

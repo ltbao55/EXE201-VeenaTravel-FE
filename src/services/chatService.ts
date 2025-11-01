@@ -343,7 +343,22 @@ export class ChatService {
   static async deleteChatSession(sessionId: string, userId?: string) {
     console.log("[ChatService.deleteChatSession] delete", { sessionId });
     try {
-      const res = await apiClient.delete(API_ENDPOINTS.CHAT_SESSIONS.DELETE.replace(':id', sessionId));
+      // Fetch session by sessionId to get Mongo _id
+      const detail = await apiClient.get<any>(
+        API_ENDPOINTS.CHAT_SESSIONS.BY_SESSION_ID.replace(':sessionId', sessionId)
+      );
+      let mongoId: string | undefined;
+      if (detail && (detail as any).messages) {
+        mongoId = (detail as any)._id;
+      } else if (detail.success && detail.data && (detail.data as any)._id) {
+        mongoId = (detail.data as any)._id;
+      }
+
+      // Fall back: try delete with given sessionId if _id not resolved (best-effort)
+      const targetId = mongoId || sessionId;
+      const res = await apiClient.delete(
+        API_ENDPOINTS.CHAT_SESSIONS.DELETE.replace(':id', targetId)
+      );
       console.log("[ChatService.deleteChatSession] response", res);
       if (!res.success) {
         throw new Error(res.error || "Failed to delete chat session");
@@ -351,7 +366,10 @@ export class ChatService {
       ChatService.removeSessionFromCache(sessionId, userId);
       return res.data;
     } catch (err) {
-      console.warn("[ChatService.deleteChatSession] backend failed, removing from local cache", err);
+      console.warn(
+        "[ChatService.deleteChatSession] backend failed or session not found, removing from local cache",
+        err
+      );
       ChatService.removeSessionFromCache(sessionId, userId);
       return { success: true } as any;
     }

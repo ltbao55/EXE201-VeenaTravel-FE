@@ -12,6 +12,8 @@ import "../styles/ChatPage.css";
 import ChatService from "../services/chatService";
 import { exploreService } from "../services/exploreService";
 import { useAuth } from "../context/AuthContext";
+import subscriptionService, { type PlanType } from "../services/subscriptionService";
+import PaymentService from "../services/paymentService";
 
 // Declare Google Maps types
 declare global {
@@ -64,6 +66,10 @@ const ChatPage: React.FC = () => {
   const [hasLoadedInitialSession, setHasLoadedInitialSession] = useState(false);
   const locationsLoggedRef = useRef(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const [userPlan, setUserPlan] = useState<PlanType | null>(null);
+  const [sessionLimitNotice, setSessionLimitNotice] = useState<string | null>(null);
+  const [messageLimitNotice, setMessageLimitNotice] = useState<string | null>(null);
+
 
   const sendingRef = useRef(false);
   const { isAuthenticated, openAuthModal, user } = useAuth();
@@ -71,6 +77,44 @@ const ChatPage: React.FC = () => {
     const anyUser: any = user as any;
     return (anyUser?.id ?? anyUser?._id ?? anyUser?.uid) as string | undefined;
   }, [user]);
+
+  // Ensure we have latest plan when needed (declare AFTER useAuth)
+  const fetchPlanIfNeeded = useCallback(async (): Promise<PlanType | null> => {
+    if (!isAuthenticated) return null;
+    try {
+      const res = await subscriptionService.getCurrent();
+      // Accept both shapes: { success, data: subscription } OR { success, data: { subscription } }
+      let planType: PlanType | null = null;
+      const maybeSub: any = (res as any)?.data?.subscription || (res as any)?.data;
+      if (maybeSub && (maybeSub as any)?.planId) {
+        const plan = (maybeSub as any).planId as any;
+        planType = (plan?.type || null) as PlanType | null;
+      }
+      if (!planType) {
+        // Fallback: if any paid payment exists, consider premium
+        try {
+          const paid = await PaymentService.getUserPayments(1, 1, "paid");
+          if (Array.isArray(paid.data) && paid.data.length > 0) {
+            planType = "premium";
+          }
+        } catch {}
+      }
+      const finalPlan = (planType || "free") as PlanType;
+      setUserPlan(finalPlan);
+      return finalPlan;
+    } catch {
+      // Network/server error: try payments fallback
+      try {
+        const paid = await PaymentService.getUserPayments(1, 1, "paid");
+        if (Array.isArray(paid.data) && paid.data.length > 0) {
+          setUserPlan("premium");
+          return "premium";
+        }
+      } catch {}
+      setUserPlan("free");
+      return "free";
+    }
+  }, [isAuthenticated]);
 
   // ✅ COMPRESS: Compress map state to reduce storage size
   const compressMapState = useCallback((mapState: SessionMapState) => {
@@ -469,6 +513,35 @@ const ChatPage: React.FC = () => {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
 
+    // If creating a new session (no current sessionId), enforce free plan limit (max 1 session)
+    const planNow = await fetchPlanIfNeeded();
+    if (!sessionId && planNow === "free") {
+      try {
+        const list = await ChatService.getChatSessions(currentUserId);
+        const count = Array.isArray(list.sessions) ? list.sessions.length : 0;
+        if (count >= 1) {
+          setSessionLimitNotice(
+            "Bạn đã đạt giới hạn số phiên chat cho gói miễn phí (1 phiên). Đóng phiên cũ hoặc nâng cấp để tạo thêm."
+          );
+          return;
+        }
+      } catch (e) {
+        console.warn("[ChatPage] Could not verify session limit, allowing send.", e);
+      }
+    }
+
+    // Check message limit with backend middleware endpoint (blocks when exceeded)
+    try {
+      const limitRes = await subscriptionService.checkMessageLimit();
+      if (!limitRes.success) {
+        setMessageLimitNotice(limitRes.error || "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục.");
+        return;
+      }
+    } catch (e: any) {
+      // If BE says 403, apiClient maps to success:false; other errors we let it pass to avoid blocking unnecessarily
+      console.warn("[ChatPage] checkMessageLimit error", e?.message || e);
+    }
+
     // Prepare a temporary session id to keep UI consistent while waiting for BE
     const tempSessionId = sessionId || `temp_${Date.now()}`;
     if (!sessionId) {
@@ -569,6 +642,11 @@ const ChatPage: React.FC = () => {
       
     } catch (err: any) {
       console.error("[ChatPage] send error", err);
+      const msg = (err && (err.message || err.error)) || "Đã xảy ra lỗi khi gửi tin nhắn.";
+      // If backend enforces message limit, surface it to UI
+      if (/lượt chat miễn phí|MESSAGE_LIMIT_EXCEEDED|hết lượt chat/i.test(String(msg))) {
+        setMessageLimitNotice(String(msg));
+      }
     } finally {
       setIsBotTyping(false);
       sendingRef.current = false;
@@ -589,6 +667,32 @@ const ChatPage: React.FC = () => {
     setSelectedSessionId(nextSessionId);
 
     if (!nextSessionId) {
+      const planNow = await fetchPlanIfNeeded();
+      // New chat requested → enforce free plan session limit before clearing state
+      if (isAuthenticated && planNow === "free") {
+        try {
+          const list = await ChatService.getChatSessions(currentUserId);
+          const count = Array.isArray(list.sessions) ? list.sessions.length : 0;
+          if (count >= 1) {
+            setSessionLimitNotice(
+              "Bạn đã đạt giới hạn số phiên chat cho gói miễn phí (1 phiên). Đóng phiên cũ hoặc nâng cấp để tạo thêm."
+            );
+            return; // Do not create a new session state
+          }
+        } catch (e) {
+          console.warn("[ChatPage] Could not verify session limit on new chat.", e);
+        }
+      }
+      // Also pre-check message limit before preparing new chat box
+      try {
+        const limitRes = await subscriptionService.checkMessageLimit();
+        if (!limitRes.success) {
+          setMessageLimitNotice(limitRes.error || "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục.");
+          return;
+        }
+      } catch (e: any) {
+        console.warn("[ChatPage] checkMessageLimit error (new chat)", e?.message || e);
+      }
       // New chat: clear and switch to chat view
       setMessages([]);
       setSessionId(undefined);
@@ -912,6 +1016,32 @@ const ChatPage: React.FC = () => {
     }
 
     setInputValue("");
+    // If this action will create a new session, enforce free plan session limit first
+    const planNow = await fetchPlanIfNeeded();
+    if (!sessionId && isAuthenticated && planNow === "free") {
+      try {
+        const list = await ChatService.getChatSessions(currentUserId);
+        const count = Array.isArray(list.sessions) ? list.sessions.length : 0;
+        if (count >= 1) {
+          setSessionLimitNotice(
+            "Bạn đã đạt giới hạn số phiên chat cho gói miễn phí (1 phiên). Đóng phiên cũ hoặc nâng cấp để tạo thêm."
+          );
+          return;
+        }
+      } catch (e) {
+        console.warn("[ChatPage] Could not verify session limit (QuickPlan).", e);
+      }
+    }
+    // Check message limit for QuickPlan
+    try {
+      const limitRes = await subscriptionService.checkMessageLimit();
+      if (!limitRes.success) {
+        setMessageLimitNotice(limitRes.error || "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục.");
+        return;
+      }
+    } catch (e: any) {
+      console.warn("[ChatPage] checkMessageLimit error (QuickPlan)", e?.message || e);
+    }
     await setTimeout(() => {}, 0);
     // Reuse normal send
     const prev = inputValue;
@@ -995,8 +1125,12 @@ const ChatPage: React.FC = () => {
         saveMapStateForSession(data.sessionId || sessionId, finalMarkers, finalCenter);
         console.log(`🗺️ Saved map state for QuickPlan session: ${data.sessionId || sessionId}`, { markers: finalMarkers.length });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn("[ChatPage] quick plan send error", e);
+      const msg = (e && (e.message || e.error)) || "Đã xảy ra lỗi khi gửi yêu cầu.";
+      if (/lượt chat miễn phí|MESSAGE_LIMIT_EXCEEDED|hết lượt chat/i.test(String(msg))) {
+        setMessageLimitNotice(String(msg));
+      }
       setInputValue(prev);
     } finally {
       setIsBotTyping(false);
@@ -1010,6 +1144,30 @@ const ChatPage: React.FC = () => {
     defaultLoadedRef.current = true;
     setMapMarkers([]);
   }, []);
+
+  // Load current subscription plan for the authenticated user
+  useEffect(() => {
+    const fetchPlan = async () => {
+      if (!isAuthenticated) {
+        setUserPlan(null);
+        return;
+      }
+      try {
+        const res = await subscriptionService.getCurrent();
+        if (res.success && res.data?.subscription) {
+          const plan: any = res.data.subscription.planId as any;
+          const planType = (plan?.type || null) as PlanType | null;
+          setUserPlan(planType);
+        } else {
+          setUserPlan("free");
+        }
+      } catch (e) {
+        console.warn("[ChatPage] Failed to load subscription, default to free", e);
+        setUserPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isAuthenticated]);
 
   // Load saved map states from localStorage on mount
   useEffect(() => {
@@ -1847,6 +2005,66 @@ const ChatPage: React.FC = () => {
                 />
               ) : (
                 <div className="chat-content">
+                  {sessionLimitNotice && (
+                    <div
+                      className="auth-required-banner"
+                      style={{
+                        margin: "0.5rem 1rem",
+                        padding: "0.75rem 1rem",
+                        borderRadius: 12,
+                        background: "rgba(255, 152, 0, 0.08)",
+                        border: "1px solid rgba(255, 152, 0, 0.25)",
+                        color: "#a15c00",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 12,
+                        }}
+                      >
+                        <span>{sessionLimitNotice}</span>
+                        <button
+                          className="send-btn"
+                          onClick={() => setSessionLimitNotice(null)}
+                        >
+                          Đã hiểu
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {messageLimitNotice && (
+                    <div
+                      className="auth-required-banner"
+                      style={{
+                        margin: "0.5rem 1rem",
+                        padding: "0.75rem 1rem",
+                        borderRadius: 12,
+                        background: "rgba(255, 77, 133, 0.08)",
+                        border: "1px solid rgba(255, 77, 133, 0.2)",
+                        color: "#D63570",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 12,
+                        }}
+                      >
+                        <span>{messageLimitNotice}</span>
+                        <button
+                          className="send-btn"
+                          onClick={() => setMessageLimitNotice(null)}
+                        >
+                          Đã hiểu
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {!isAuthenticated && (
                     <div
                       className="auth-required-banner"
@@ -1878,6 +2096,27 @@ const ChatPage: React.FC = () => {
                     </div>
                   )}
                   <div className="chat-messages">
+                    {messages.length === 0 && (
+                      <div
+                        style={{
+                          margin: "1rem",
+                          padding: "1rem",
+                          borderRadius: 12,
+                          background: "rgba(99, 102, 241, 0.06)",
+                          border: "1px dashed rgba(99, 102, 241, 0.35)",
+                          color: "#3730A3",
+                          textAlign: "center",
+                        }}
+                      >
+                        <h3 style={{ margin: 0, marginBottom: 8 }}>
+                          🤖 Trợ lý du lịch AI
+                        </h3>
+                        <p style={{ margin: 0, opacity: 0.9 }}>
+                          Hãy nói điều bạn muốn: điểm đến, số ngày, ngân sách hay sở thích.
+                          Ví dụ: “Lên lịch trình 3 ngày ở Đà Nẵng cho gia đình, ưu tiên biển và ẩm thực”.
+                        </p>
+                      </div>
+                    )}
                     {messages.map((message) => (
                       <div
                         key={message.id}

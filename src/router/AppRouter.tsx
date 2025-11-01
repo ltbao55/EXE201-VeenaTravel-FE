@@ -7,6 +7,7 @@ import DashboardPage from "../pages/DashboardPage";
 import ServicesPage from "../pages/ServicesPage";
 import Payment from "../components/Payment/Payment";
 import PaymentReturn from "../components/Payment/PaymentReturn";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const AppRouter = () => {
   return (
@@ -16,10 +17,19 @@ const AppRouter = () => {
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/chat/explore" element={<ExplorePage />} />
         <Route path="/chat/profile" element={<ProfilePage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/payment/return" element={<PaymentReturn />} />
+        {/* Support BE-style callback path in FE router as well */}
+        <Route path="/api/payments/return" element={<PaymentReturn />} />
       </Routes>
     </Router>
   );

@@ -18,6 +18,7 @@
 
 .profile-container {
   display: flex;
+  flex-direction: column; /* Sidebar ngang như header */
   min-height: calc(100vh - 80px);
   gap: 20px;
   padding: 20px;
@@ -27,20 +28,24 @@
 
 /* Enhanced Sidebar Styles */
 .profile-sidebar {
-  width: 300px;
+  width: 100%;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 16px;
-  padding: 24px;
-  height: fit-content;
+  padding: 12px 16px;
+  height: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .sidebar-header {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  margin: 0;
+  padding: 0 8px 0 0;
+  border: 0;
 }
 
 .sidebar-header h3 {
@@ -51,12 +56,12 @@
 }
 
 .sidebar-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  margin-bottom: 8px;
-  border-radius: 12px;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 0;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
   color: #64748b;

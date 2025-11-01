@@ -9,6 +9,7 @@ interface User {
   avatar?: string;
   isPremium?: boolean;
   isGoogleUser?: boolean;
+  role?: "user" | "admin";
 }
 
 interface AuthContextType {
@@ -58,6 +59,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               const token = await firebaseUser.getIdToken();
               localStorage.setItem("authToken", token);
 
+              // Try to get user data from backend to check role
+              let userRole: "user" | "admin" | undefined = undefined;
+              try {
+                const backendUser = await AuthService.getCurrentUser();
+                userRole = backendUser.role;
+              } catch (error) {
+                // If backend call fails, continue with stored data
+                console.warn("Could not fetch user role from backend:", error);
+                const storedData = AuthService.getStoredUser();
+                userRole = storedData?.role;
+              }
+
               const userData: User = {
                 id: firebaseUser.uid,
                 name:
@@ -68,17 +81,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 avatar: firebaseUser.photoURL || undefined,
                 isPremium: false,
                 isGoogleUser: true,
+                role: userRole,
               };
 
               localStorage.setItem("userData", JSON.stringify(userData));
               setUser(userData);
               setIsLoading(false);
+
+              // Redirect to dashboard if user is admin
+              if (userRole === "admin" && window.location.pathname !== "/dashboard") {
+                window.location.href = "/dashboard";
+              }
             } else {
               // Check traditional auth
               if (AuthService.isAuthenticated()) {
                 try {
                   const userData = await AuthService.getCurrentUser();
                   setUser({ ...userData, isGoogleUser: false });
+                  
+                  // Redirect to dashboard if user is admin and not already there
+                  if (userData.role === "admin" && window.location.pathname !== "/dashboard") {
+                    window.location.href = "/dashboard";
+                  }
                 } catch (error) {
                   console.warn(
                     "Auth check failed, user may not be authenticated:",
@@ -122,6 +146,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       AuthService.storeAuthData(authData);
       setUser(authData.user);
       setShowAuthModal(false);
+
+      // Redirect to dashboard if user is admin
+      if (authData.user.role === "admin") {
+        window.location.href = "/dashboard";
+      }
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -139,6 +168,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       AuthService.storeAuthData(authData);
       setUser({ ...authData.user, isGoogleUser: false });
       setShowAuthModal(false);
+
+      // Redirect to dashboard if user is admin
+      if (authData.user.role === "admin") {
+        window.location.href = "/dashboard";
+      }
     } catch (error) {
       console.error("Registration failed:", error);
       throw error;
@@ -158,6 +192,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Store token in localStorage
       localStorage.setItem("authToken", token);
 
+      // Try to get user data from backend to check role
+      let userRole: "user" | "admin" | undefined = undefined;
+      try {
+        const backendUser = await AuthService.getCurrentUser();
+        userRole = backendUser.role;
+      } catch (error) {
+        // If backend call fails, continue with default role
+        console.warn("Could not fetch user role from backend:", error);
+      }
+
       // Create user object from Firebase user
       const userData: User = {
         id: firebaseUser.uid,
@@ -169,6 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         avatar: firebaseUser.photoURL || undefined,
         isPremium: false,
         isGoogleUser: true,
+        role: userRole,
       };
 
       // Store user data
@@ -176,6 +221,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       setUser(userData);
       setShowAuthModal(false);
+
+      // Redirect to dashboard if user is admin
+      if (userRole === "admin") {
+        window.location.href = "/dashboard";
+      }
     } catch (error) {
       console.error("Google login failed:", error);
       throw error;

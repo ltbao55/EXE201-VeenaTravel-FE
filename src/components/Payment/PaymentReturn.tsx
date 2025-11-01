@@ -26,9 +26,13 @@ const PaymentReturn = () => {
     });
 
     // Check payment status
-    if (payStatus === "PAID" || payStatus === "paid") {
+    if (payStatus === "PAID" || payStatus === "paid" || payStatus === "success") {
       setStatus("success");
       console.log("[PaymentReturn] Payment successful");
+      // Redirect to home immediately on success
+      navigate("/", { replace: true });
+      setLoading(false);
+      return;
     } else if (searchParams.get("cancel") === "true") {
       setStatus("cancel");
       console.log("[PaymentReturn] Payment cancelled");
@@ -54,11 +58,10 @@ const PaymentReturn = () => {
     }
 
     setLoading(false);
-
-    // Redirect to home after 3 seconds
+    // Redirect after short delay for non-success cases
     setTimeout(() => {
-      navigate("/");
-    }, 3000);
+      navigate("/", { replace: true });
+    }, 2000);
   };
 
   return (

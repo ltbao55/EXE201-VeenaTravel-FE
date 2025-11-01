@@ -1,10 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/profile.css";
 
 // Professional Profile component
 const Profile: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const hardNavigate = (path: string) => {
+    try {
+      navigate(path);
+    } finally {
+      // Fallback đảm bảo component route được mount
+      setTimeout(() => {
+        if (window.location.pathname !== path) {
+          window.location.assign(path);
+        }
+      }, 0);
+    }
+  };
   const [activeSection, setActiveSection] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -16,37 +30,41 @@ const Profile: React.FC = () => {
     phone: "",
   });
 
-  // Enhanced profile data with more realistic information
-  const profileData = user
-    ? {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        isPremium: user.isPremium,
-        bio: "Tôi là một người yêu thích du lịch và khám phá những vùng đất mới. Với niềm đam mê khám phá văn hóa và ẩm thực địa phương, tôi luôn tìm kiếm những trải nghiệm độc đáo và ý nghĩa trong mỗi chuyến đi.",
-        location: "Thành phố Hồ Chí Minh, Việt Nam",
-        website: "https://veenatravel.com",
-        phone: "+84 123 456 789",
-        joinDate: "Tháng 1, 2024",
-        totalTrips: 12,
-        favoriteDestinations: 8,
-        reviews: 24,
-        preferences: {
-          travelTypes: [
-            "Du lịch biển",
-            "Du lịch núi",
-            "Du lịch văn hóa",
-            "Du lịch ẩm thực",
-          ],
-          notifications: {
-            email: true,
-            push: true,
-            sms: false,
-          },
-        },
-      }
-    : null;
+  // Enhanced profile data with more realistic information (memoized to avoid effect loops)
+  const profileData = useMemo(
+    () =>
+      user
+        ? {
+            id: (user as any).id || (user as any)._id || (user as any).uid,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            isPremium: (user as any).isPremium,
+            bio: "Tôi là một người yêu thích du lịch và khám phá những vùng đất mới. Với niềm đam mê khám phá văn hóa và ẩm thực địa phương, tôi luôn tìm kiếm những trải nghiệm độc đáo và ý nghĩa trong mỗi chuyến đi.",
+            location: "Thành phố Hồ Chí Minh, Việt Nam",
+            website: "https://veenatravel.com",
+            phone: "+84 123 456 789",
+            joinDate: "Tháng 1, 2024",
+            totalTrips: 12,
+            favoriteDestinations: 8,
+            reviews: 24,
+            preferences: {
+              travelTypes: [
+                "Du lịch biển",
+                "Du lịch núi",
+                "Du lịch văn hóa",
+                "Du lịch ẩm thực",
+              ],
+              notifications: {
+                email: true,
+                push: true,
+                sms: false,
+              },
+            },
+          }
+        : null,
+    [user]
+  );
 
   useEffect(() => {
     if (profileData) {
@@ -110,7 +128,7 @@ const Profile: React.FC = () => {
         {/* Enhanced Sidebar */}
         <div className="profile-sidebar">
           <div className="sidebar-header">
-            <h3>Cài đặt</h3>
+            <h3>Hồ sơ của tôi</h3>
           </div>
           <div
             className={`sidebar-item ${

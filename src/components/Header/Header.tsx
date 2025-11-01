@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import subscriptionService, { type PlanType } from "../../services/subscriptionService";
+import PaymentService from "../../services/paymentService";
 import "./Header.css";
 
 const Header: React.FC = () => {
@@ -8,6 +10,48 @@ const Header: React.FC = () => {
   const { openAuthModal, isAuthenticated, user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [planType, setPlanType] = useState<PlanType | null>(null);
+
+  useEffect(() => {
+    const loadPlan = async () => {
+      if (!isAuthenticated) {
+        setPlanType(null);
+        return;
+      }
+      try {
+        const res = await subscriptionService.getCurrent();
+        if (res.success && (res.data as any)?.subscription) {
+          const plan: any = (res.data as any).subscription.planId as any;
+          setPlanType((plan?.type as PlanType) || "free");
+        } else {
+          // Fallback: nếu chưa có subscription, kiểm tra lịch sử thanh toán
+          try {
+            const paid = await PaymentService.getUserPayments(1, 1, "paid");
+            if (Array.isArray(paid.data) && paid.data.length > 0) {
+              setPlanType("premium");
+            } else {
+              setPlanType("free");
+            }
+          } catch {
+            setPlanType("free");
+          }
+        }
+      } catch {
+        // Fallback: thử kiểm tra thanh toán 'paid'
+        try {
+          const paid = await PaymentService.getUserPayments(1, 1, "paid");
+          if (Array.isArray(paid.data) && paid.data.length > 0) {
+            setPlanType("premium");
+          } else {
+            setPlanType("free");
+          }
+        } catch {
+          setPlanType("free");
+        }
+      }
+    };
+    loadPlan();
+  }, [isAuthenticated]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -134,6 +178,31 @@ const Header: React.FC = () => {
                   />
                 ) : null}
                 {user?.name || "Tài khoản"}
+                {planType && (
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      padding: "2px 6px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      background:
+                        planType === "premium"
+                          ? "rgba(255, 215, 0, 0.15)"
+                          : planType === "pro"
+                          ? "rgba(76, 175, 80, 0.15)"
+                          : "rgba(0,0,0,0.08)",
+                      color:
+                        planType === "premium"
+                          ? "#b28900"
+                          : planType === "pro"
+                          ? "#2e7d32"
+                          : "#555",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {planType}
+                  </span>
+                )}
               </button>
               {isUserMenuOpen && (
                 <div
