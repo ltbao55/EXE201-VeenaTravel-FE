@@ -15,15 +15,6 @@ VITE_API_BASE_URL=https://api.veenatravel.online/api
 
 # Environment
 VITE_NODE_ENV=development
-
-# Firebase configuration
-VITE_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
-VITE_FIREBASE_APP_ID=1:000000000000:web:abcdef123456
-VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
 ## Cách lấy Google Maps API Key
