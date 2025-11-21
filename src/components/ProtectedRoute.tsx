@@ -19,20 +19,30 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Fetch user role from backend if needed (for admin check)
   useEffect(() => {
     const fetchUserRole = async () => {
-      if (requireAdmin && isAuthenticated && user && !user.role) {
+      // Always fetch fresh role from backend when admin check is required
+      if (requireAdmin && isAuthenticated && user) {
         setCheckingRole(true);
         try {
+          console.log("[ProtectedRoute] Fetching user role from backend...");
           // Fetch fresh user data from backend to get role
           const backendUser = await AuthService.getCurrentUser();
+          console.log("[ProtectedRoute] Backend user data:", backendUser);
+          console.log("[ProtectedRoute] User role:", backendUser.role);
           setUserRole(backendUser.role);
+
+          // Update user in context if role changed
+          if (backendUser.role !== user.role) {
+            console.log("[ProtectedRoute] Role updated:", backendUser.role);
+          }
         } catch (error) {
-          console.warn("Could not fetch user role:", error);
-          // If can't fetch, assume not admin
-          setUserRole(undefined);
+          console.error("[ProtectedRoute] Could not fetch user role:", error);
+          // If can't fetch, use stored role or assume not admin
+          setUserRole(user.role || undefined);
         } finally {
           setCheckingRole(false);
         }
       } else if (user?.role) {
+        // Use stored role if not requiring admin check
         setUserRole(user.role);
       }
     };
@@ -67,7 +77,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             animation: "spin 1s linear infinite",
           }}
         ></div>
-        <p style={{ color: "#666", margin: 0 }}>Đang kiểm tra quyền truy cập...</p>
+        <p style={{ color: "#666", margin: 0 }}>
+          Đang kiểm tra quyền truy cập...
+        </p>
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -85,15 +97,24 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check if admin role is required
   if (requireAdmin) {
-    const role = userRole || user.role;
+    const role = userRole || user?.role;
+    console.log("[ProtectedRoute] Checking admin access. User role:", role);
+    console.log("[ProtectedRoute] UserRole state:", userRole);
+    console.log("[ProtectedRoute] User object role:", user?.role);
+
     if (role !== "admin") {
+      console.warn(
+        "[ProtectedRoute] Access denied. User role is not admin:",
+        role
+      );
       // Redirect to home with message (optional: you could show a toast/alert)
       return <Navigate to="/" replace />;
     }
+
+    console.log("[ProtectedRoute] Admin access granted");
   }
 
   return <>{children}</>;
 };
 
 export default ProtectedRoute;
-

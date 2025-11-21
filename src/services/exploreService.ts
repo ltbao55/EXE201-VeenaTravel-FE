@@ -1,5 +1,4 @@
 import { apiClient } from "./api";
-import { API_CONFIG } from "../config/api";
 
 export interface ExploreCategory {
   key: string;
@@ -30,18 +29,21 @@ export interface ExplorePlace {
   distance?: number; // meters
 
   // Đánh giá
-  rating?: {
-    average: number;
-    count: number;
-  };
+  rating?:
+    | number
+    | {
+        average?: number;
+        count?: number;
+      };
   ratingAverage?: number; // Fallback
   ratingCount?: number; // Fallback
-  rating?: number; // Legacy fallback
   userRatingsTotal?: number; // Legacy fallback
 
   // Hình ảnh
   images?: string[];
   photoUrl?: string;
+  photos?: string[];
+  reviews?: any[];
 
   // Nguồn dữ liệu
   source?: "places" | "partners" | "google";
@@ -49,7 +51,7 @@ export interface ExplorePlace {
   priority?: number; // 1-10
 
   // Thông tin bổ sung
-  tags?: string[];
+  tags?: string[] | string;
   priceRange?: string; // $ | $$ | $$$ | $$$$
   priceLevel?: number; // Legacy fallback
   contact?: {
@@ -57,7 +59,7 @@ export interface ExplorePlace {
     email?: string;
   };
   openingHours?: any;
-  amenities?: string[];
+  amenities?: string[] | string;
   place_id?: string; // Google Place ID
 
   // Metadata
@@ -168,9 +170,39 @@ export const exploreService = {
         throw new Error(res.error || "Failed to fetch categories");
       }
 
-      // Support both shapes: { success, data } or raw array
-      const data = Array.isArray(res?.data) ? res.data : res;
-      return data as ExploreCategory[];
+      // Support multiple response formats:
+      // 1. { success: true, data: [...] } - array in data
+      // 2. { success: true, data: { categories: [...] } } - array in data.categories
+      // 3. { success: true, data: [...] } - direct array
+      // 4. [...] - raw array
+      let categories: ExploreCategory[] = [];
+
+      if (res?.data) {
+        if (Array.isArray(res.data)) {
+          categories = res.data;
+        } else if (Array.isArray(res.data.categories)) {
+          categories = res.data.categories;
+        } else if (Array.isArray(res.data.items)) {
+          categories = res.data.items;
+        } else if (typeof res.data === "object") {
+          // If data is object but not array, try to extract categories
+          console.warn(
+            "Categories API returned object instead of array:",
+            res.data
+          );
+          categories = [];
+        }
+      } else if (Array.isArray(res)) {
+        categories = res;
+      }
+
+      // Ensure we return an array
+      if (!Array.isArray(categories)) {
+        console.warn("Categories is not an array, returning empty array");
+        return [];
+      }
+
+      return categories as ExploreCategory[];
     } catch (error) {
       console.error("Categories API error:", error);
       // Return fallback categories
@@ -216,12 +248,60 @@ export const exploreService = {
         throw new Error(res.error || "Failed to fetch explore places");
       }
 
-      // Accept both shapes: { success, data } or raw response
+      // Accept both shapes: { success, data } hoặc response raw
       const payload = res?.data ? res.data : res;
-      const items: ExplorePlace[] = (payload?.items ||
-        payload?.places ||
-        payload ||
-        []) as ExplorePlace[];
+
+      // Debug logging
+      console.log("Payload structure:", payload);
+      console.log("Has items?", !!payload?.items);
+      console.log("Has places?", !!payload?.places);
+      console.log("Is array?", Array.isArray(payload));
+
+      // Better extraction - handle **nhiều** format trả về từ BE
+      let items: ExplorePlace[] = [];
+
+      if (Array.isArray(payload)) {
+        // 1. Trả về trực tiếp dạng mảng: [...]
+        items = payload;
+      } else if (Array.isArray(payload?.items)) {
+        // 2. { items: [...] }
+        items = payload.items;
+      } else if (
+        payload?.items &&
+        typeof payload.items === "object" &&
+        Array.isArray((payload.items as any).items)
+      ) {
+        // 3. { items: { items: [...] , pagination: {...}, ... } }
+        items = (payload.items as any).items;
+      } else if (
+        payload?.items &&
+        typeof payload.items === "object" &&
+        Array.isArray((payload.items as any).data)
+      ) {
+        // 4. { items: { data: [...] , pagination: {...}, ... } }
+        items = (payload.items as any).data;
+      } else if (Array.isArray(payload?.places)) {
+        // 5. { places: [...] }
+        items = payload.places;
+      } else if (Array.isArray(payload?.data)) {
+        // 6. { data: [...] }
+        items = payload.data;
+      } else if (
+        payload?.data &&
+        typeof payload.data === "object" &&
+        Array.isArray((payload.data as any).items)
+      ) {
+        // 7. { data: { items: [...] } }
+        items = (payload.data as any).items;
+      } else {
+        console.warn(
+          "No items array found in explore response. Payload:",
+          payload
+        );
+        items = [];
+      }
+
+      console.log(`Extracted ${items.length} items from response`);
 
       return {
         items,

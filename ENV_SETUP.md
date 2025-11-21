@@ -9,7 +9,9 @@ Tạo file `.env` trong thư mục gốc của project (cùng cấp với `packa
 VITE_GOOGLE_MAPS_API_KEY=YOUR_ACTUAL_GOOGLE_MAPS_API_KEY_HERE
 
 # Backend API URL
-VITE_API_BASE_URL=http://localhost:5001/api
+# Development: http://localhost:5001/api
+# Production: https://api.veenatravel.online/api (hoặc URL backend thực tế của bạn)
+VITE_API_BASE_URL=https://api.veenatravel.online/api
 
 # Environment
 VITE_NODE_ENV=development

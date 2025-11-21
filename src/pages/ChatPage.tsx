@@ -12,7 +12,9 @@ import "../styles/ChatPage.css";
 import ChatService from "../services/chatService";
 import { exploreService } from "../services/exploreService";
 import { useAuth } from "../context/AuthContext";
-import subscriptionService, { type PlanType } from "../services/subscriptionService";
+import subscriptionService, {
+  type PlanType,
+} from "../services/subscriptionService";
 import PaymentService from "../services/paymentService";
 
 // Declare Google Maps types
@@ -56,20 +58,31 @@ const ChatPage: React.FC = () => {
 
   // Marker details state
   const [selectedMarker, setSelectedMarker] = useState<any>(null);
+  const markerRatingValue = selectedMarker
+    ? extractRatingValue(selectedMarker)
+    : undefined;
+  const markerRatingCount = selectedMarker
+    ? extractRatingCount(selectedMarker)
+    : undefined;
   const [showMarkerDetails, setShowMarkerDetails] = useState(false);
   const [markerDetailLoading, setMarkerDetailLoading] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<any>(null);
-  
+  const [currentLocation, _setCurrentLocation] = useState<any>(null);
+
   // Session-based map state management
-  const [sessionMapStates, setSessionMapStates] = useState<Record<string, SessionMapState>>({});
+  const [sessionMapStates, setSessionMapStates] = useState<
+    Record<string, SessionMapState>
+  >({});
   // const [isUpdatingMap] = useState(false);
   const [hasLoadedInitialSession, setHasLoadedInitialSession] = useState(false);
   const locationsLoggedRef = useRef(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const [userPlan, setUserPlan] = useState<PlanType | null>(null);
-  const [sessionLimitNotice, setSessionLimitNotice] = useState<string | null>(null);
-  const [messageLimitNotice, setMessageLimitNotice] = useState<string | null>(null);
-
+  const [, setUserPlan] = useState<PlanType | null>(null);
+  const [sessionLimitNotice, setSessionLimitNotice] = useState<string | null>(
+    null
+  );
+  const [messageLimitNotice, setMessageLimitNotice] = useState<string | null>(
+    null
+  );
 
   const sendingRef = useRef(false);
   const { isAuthenticated, openAuthModal, user } = useAuth();
@@ -85,7 +98,8 @@ const ChatPage: React.FC = () => {
       const res = await subscriptionService.getCurrent();
       // Accept both shapes: { success, data: subscription } OR { success, data: { subscription } }
       let planType: PlanType | null = null;
-      const maybeSub: any = (res as any)?.data?.subscription || (res as any)?.data;
+      const maybeSub: any =
+        (res as any)?.data?.subscription || (res as any)?.data;
       if (maybeSub && (maybeSub as any)?.planId) {
         const plan = (maybeSub as any).planId as any;
         planType = (plan?.type || null) as PlanType | null;
@@ -120,7 +134,7 @@ const ChatPage: React.FC = () => {
   const compressMapState = useCallback((mapState: SessionMapState) => {
     return {
       sessionId: mapState.sessionId,
-      markers: mapState.markers.map(marker => ({
+      markers: mapState.markers.map((marker) => ({
         id: marker.id,
         lat: marker.lat,
         lng: marker.lng,
@@ -140,7 +154,7 @@ const ChatPage: React.FC = () => {
       })),
       center: mapState.center,
       zoom: mapState.zoom,
-      lastUpdated: mapState.lastUpdated
+      lastUpdated: mapState.lastUpdated,
     };
   }, []);
 
@@ -149,23 +163,25 @@ const ChatPage: React.FC = () => {
     try {
       let totalSize = 0;
       const keys = Object.keys(localStorage);
-      
-      keys.forEach(key => {
+
+      keys.forEach((key) => {
         const value = localStorage.getItem(key);
         if (value) {
           totalSize += key.length + value.length;
         }
       });
-      
+
       return {
         totalSize,
         totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
         keyCount: keys.length,
-        mapStateKeys: keys.filter(key => key.startsWith(`mapState:${currentUserId}:`)).length
+        mapStateKeys: keys.filter((key) =>
+          key.startsWith(`mapState:${currentUserId}:`)
+        ).length,
       };
-    } catch (error) {
-      console.error('Failed to get localStorage usage:', error);
-      return { totalSize: 0, totalSizeMB: '0', keyCount: 0, mapStateKeys: 0 };
+    } catch (error: any) {
+      console.error("Failed to get localStorage usage:", error);
+      return { totalSize: 0, totalSizeMB: "0", keyCount: 0, mapStateKeys: 0 };
     }
   }, [currentUserId]);
 
@@ -173,328 +189,365 @@ const ChatPage: React.FC = () => {
   const cleanupOldMapStates = useCallback(() => {
     try {
       const keys = Object.keys(localStorage);
-      const mapStateKeys = keys.filter(key => key.startsWith(`mapState:${currentUserId}:`));
-      
+      const mapStateKeys = keys.filter((key) =>
+        key.startsWith(`mapState:${currentUserId}:`)
+      );
+
       if (mapStateKeys.length === 0) return;
-      
+
       // Get all map states with their timestamps
-      const mapStates = mapStateKeys.map(key => {
+      const mapStates = mapStateKeys.map((key) => {
         try {
-          const data = JSON.parse(localStorage.getItem(key) || '{}');
-          return { key, lastUpdated: data.lastUpdated || '1970-01-01T00:00:00.000Z' };
+          const data = JSON.parse(localStorage.getItem(key) || "{}");
+          return {
+            key,
+            lastUpdated: data.lastUpdated || "1970-01-01T00:00:00.000Z",
+          };
         } catch {
-          return { key, lastUpdated: '1970-01-01T00:00:00.000Z' };
+          return { key, lastUpdated: "1970-01-01T00:00:00.000Z" };
         }
       });
-      
+
       // Sort by lastUpdated (oldest first)
-      mapStates.sort((a, b) => new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime());
-      
+      mapStates.sort(
+        (a, b) =>
+          new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime()
+      );
+
       // Remove oldest 50% of map states
       const toDelete = mapStates.slice(0, Math.floor(mapStates.length / 2));
       toDelete.forEach(({ key }) => {
         localStorage.removeItem(key);
         console.log(`🗑️ Cleaned up old map state: ${key}`);
       });
-      
+
       console.log(`🗑️ Cleaned up ${toDelete.length} old map states`);
-      
+
       // Log usage after cleanup
       const usage = getLocalStorageUsage();
       console.log(`🗑️ localStorage usage after cleanup:`, usage);
-    } catch (error) {
-      console.error('Failed to cleanup old map states:', error);
+    } catch (error: any) {
+      console.error("Failed to cleanup old map states:", error);
     }
   }, [currentUserId, getLocalStorageUsage]);
 
   // ✅ SAVE: Save map state with error handling and cleanup
-  const saveMapStateForSession = useCallback((sessionId: string, markers: any[], center: {lat: number, lng: number}, zoom: number = 13) => {
-    const mapState: SessionMapState = {
-      sessionId,
-      markers,
-      center,
-      zoom,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    setSessionMapStates(prev => ({
-      ...prev,
-      [sessionId]: mapState
-    }));
-    
-    const storageKey = `mapState:${currentUserId}:${sessionId}`;
-    
-    try {
-      // Compress data before saving
-      const compressedState = compressMapState(mapState);
-      const compressedData = JSON.stringify(compressedState);
-      
-      // Try to save
-      localStorage.setItem(storageKey, compressedData);
-      console.log(`🗺️ 💾 SAVED map state for session: ${sessionId}`, { 
-        markers: markers.length, 
+  const saveMapStateForSession = useCallback(
+    (
+      sessionId: string,
+      markers: any[],
+      center: { lat: number; lng: number },
+      zoom: number = 13
+    ) => {
+      const mapState: SessionMapState = {
+        sessionId,
+        markers,
         center,
         zoom,
-        timestamp: mapState.lastUpdated,
-        storageKey,
-        compressedSize: compressedData.length
-      });
-    } catch (error) {
-      if (error.name === 'QuotaExceededError') {
-        console.warn(`🗺️ ⚠️ localStorage quota exceeded, cleaning up old data...`);
-        
-        // Clean up old data
-        cleanupOldMapStates();
-        
-        try {
-          // Try to save again after cleanup
-          const compressedState = compressMapState(mapState);
-          const compressedData = JSON.stringify(compressedState);
-          localStorage.setItem(storageKey, compressedData);
-          console.log(`🗺️ ✅ SAVED map state after cleanup: ${sessionId}`, { 
-            markers: markers.length, 
-            compressedSize: compressedData.length
-          });
-        } catch (retryError) {
-          console.error(`🗺️ ❌ Failed to save map state even after cleanup:`, retryError);
-          // Still update in-memory state even if localStorage fails
+        lastUpdated: new Date().toISOString(),
+      };
+
+      setSessionMapStates((prev) => ({
+        ...prev,
+        [sessionId]: mapState,
+      }));
+
+      const storageKey = `mapState:${currentUserId}:${sessionId}`;
+
+      try {
+        // Compress data before saving
+        const compressedState = compressMapState(mapState);
+        const compressedData = JSON.stringify(compressedState);
+
+        // Try to save
+        localStorage.setItem(storageKey, compressedData);
+        console.log(`🗺️ 💾 SAVED map state for session: ${sessionId}`, {
+          markers: markers.length,
+          center,
+          zoom,
+          timestamp: mapState.lastUpdated,
+          storageKey,
+          compressedSize: compressedData.length,
+        });
+      } catch (error: any) {
+        if (error.name === "QuotaExceededError") {
+          console.warn(
+            `🗺️ ⚠️ localStorage quota exceeded, cleaning up old data...`
+          );
+
+          // Clean up old data
+          cleanupOldMapStates();
+
+          try {
+            // Try to save again after cleanup
+            const compressedState = compressMapState(mapState);
+            const compressedData = JSON.stringify(compressedState);
+            localStorage.setItem(storageKey, compressedData);
+            console.log(`🗺️ ✅ SAVED map state after cleanup: ${sessionId}`, {
+              markers: markers.length,
+              compressedSize: compressedData.length,
+            });
+          } catch (retryError: any) {
+            console.error(
+              `🗺️ ❌ Failed to save map state even after cleanup:`,
+              retryError
+            );
+            // Still update in-memory state even if localStorage fails
+          }
+        } else {
+          console.error(`🗺️ ❌ Failed to save map state:`, error);
         }
-      } else {
-        console.error(`🗺️ ❌ Failed to save map state:`, error);
       }
-    }
-  }, [currentUserId, compressMapState, cleanupOldMapStates]);
+    },
+    [currentUserId, compressMapState, cleanupOldMapStates]
+  );
 
   // Helper function to build markers from payload (moved from inline)
   const buildMarkersFromPayload = useCallback((payload: any) => {
-        if (!payload) return [] as any[];
-        console.log("[Markers] Build from payload:", {
-          hasLocations: Array.isArray(payload?.locations),
-          hasItinerary: !!payload?.itinerary,
-        });
-        
-        // ✅ DEBUG: Log payload structure
-        if (payload?.locations) {
-          console.log(`🗺️ [DEBUG] Locations count: ${payload.locations.length}`);
-          payload.locations.forEach((loc: any, i: number) => {
-            console.log(`🗺️ [DEBUG] Location ${i}:`, {
-              hasCoordinates: !!(loc.coordinates?.lat && loc.coordinates?.lng),
-              coordinates: loc.coordinates,
-              name: loc.name,
-              address: loc.address
-            });
-          });
-        }
-        
-        
-        const fromLocations = Array.isArray(payload?.locations)
-          ? payload.locations
-              .filter(
-                (loc: any) =>
-                  loc &&
-                  loc.coordinates &&
-                  typeof loc.coordinates.lat === "number" &&
-                  typeof loc.coordinates.lng === "number"
-              )
-              .map((loc: any, i: number) => {
-                const marker = {
-                id: loc.id || `loc-${i}`,
-                lat: Number(loc.coordinates.lat),
-                lng: Number(loc.coordinates.lng),
-                title: String(loc.name || loc.address || "Địa điểm"),
-                description: loc.description,
-                type: loc.type || loc.category || "place",
-                  
-                  // ✅ ENHANCED: Map all enriched data from backend
-                  name: loc.name,
-                  address: loc.address,
-                  placeId: loc.placeId || loc.place_id, // ✅ FIXED: Map both placeId and place_id
-                  rating: loc.rating,
-                  photos: loc.photos || [],
-                  photoUrl: loc.photoUrl,
-                  contact: loc.contact,
-                  openingHours: loc.openingHours,
-                  priceLevel: loc.priceLevel,
-                  userRatingsTotal: loc.userRatingsTotal || loc.user_ratings_total,
-                  reviews: loc.reviews || [],
-                  amenities: loc.amenities || [],
-                  estimatedCost: loc.estimatedCost,
-                  bestTimeToVisit: loc.bestTimeToVisit,
-                  tips: loc.tips,
-                  formatted_address: loc.formatted_address,
-                  category: loc.category,
-                  user_ratings_total: loc.user_ratings_total
-                };
-                
-                
-                return marker;
-              })
-          : [];
-        if (fromLocations.length) {
-          console.log(
-            "[Markers] Locations (with coords)",
-            fromLocations.length,
-            fromLocations
-              .slice(0, 10)
-              .map((m: any) => ({ title: m.title, lat: m.lat, lng: m.lng }))
-          );
-        }
+    if (!payload) return [] as any[];
+    console.log("[Markers] Build from payload:", {
+      hasLocations: Array.isArray(payload?.locations),
+      hasItinerary: !!payload?.itinerary,
+    });
 
-        const itin = payload?.itinerary;
-        const fromItin: any[] = [];
-        
-        
-        if (itin && Array.isArray(itin.days)) {
-          itin.days.forEach((day: any, dayIdx: number) => {
-            if (Array.isArray(day?.activities)) {
-              day.activities.forEach((act: any, actIdx: number) => {
-                const c = act?.coordinates;
-                if (
-                  c &&
-                  typeof c.lat === "number" &&
-                  typeof c.lng === "number"
-                ) {
-                  const marker = {
-                    id: act.id || `itin-${dayIdx + 1}-${actIdx + 1}`,
-                    lat: Number(c.lat),
-                    lng: Number(c.lng),
-                    title: String(act.title || act.location || "Hoạt động"),
-                    description: act.description,
-                    type: act.type || "activity",
-                    
-                    // ✅ ENHANCED: Map all enriched data from backend
-                    name: act.title || act.name,
-                    address: act.formatted_address || act.location || act.address,
-                    placeId: act.place_id || act.placeId, // ✅ FIXED: Map both place_id and placeId
-                    rating: act.rating,
-                    photos: act.photos || [],
-                    photoUrl: act.photoUrl,
-                    contact: act.contact,
-                    openingHours: act.openingHours,
-                    priceLevel: act.priceLevel,
-                    userRatingsTotal: act.userRatingsTotal || act.user_ratings_total,
-                    reviews: act.reviews || [],
-                    amenities: act.amenities || [],
-                    estimatedCost: act.estimatedCost,
-                    duration: act.duration,
-                    priority: act.priority,
-                    day: dayIdx + 1,
-                    time: act.time,
-                    formatted_address: act.formatted_address,
-                    category: act.category || 'itinerary',
-                    user_ratings_total: act.user_ratings_total
-                  };
-                  
-                  
-                  fromItin.push(marker);
-                }
-              });
+    // ✅ DEBUG: Log payload structure
+    if (payload?.locations) {
+      console.log(`🗺️ [DEBUG] Locations count: ${payload.locations.length}`);
+      payload.locations.forEach((loc: any, i: number) => {
+        console.log(`🗺️ [DEBUG] Location ${i}:`, {
+          hasCoordinates: !!(loc.coordinates?.lat && loc.coordinates?.lng),
+          coordinates: loc.coordinates,
+          name: loc.name,
+          address: loc.address,
+        });
+      });
+    }
+
+    const fromLocations = Array.isArray(payload?.locations)
+      ? payload.locations
+          .filter(
+            (loc: any) =>
+              loc &&
+              loc.coordinates &&
+              typeof loc.coordinates.lat === "number" &&
+              typeof loc.coordinates.lng === "number"
+          )
+          .map((loc: any, i: number) => {
+            const marker = {
+              id: loc.id || `loc-${i}`,
+              lat: Number(loc.coordinates.lat),
+              lng: Number(loc.coordinates.lng),
+              title: String(loc.name || loc.address || "Địa điểm"),
+              description: loc.description,
+              type: loc.type || loc.category || "place",
+
+              // ✅ ENHANCED: Map all enriched data from backend
+              name: loc.name,
+              address: loc.address,
+              placeId: loc.placeId || loc.place_id, // ✅ FIXED: Map both placeId and place_id
+              rating: loc.rating,
+              photos: loc.photos || [],
+              photoUrl: loc.photoUrl,
+              contact: loc.contact,
+              openingHours: loc.openingHours,
+              priceLevel: loc.priceLevel,
+              userRatingsTotal: loc.userRatingsTotal || loc.user_ratings_total,
+              reviews: loc.reviews || [],
+              amenities: loc.amenities || [],
+              estimatedCost: loc.estimatedCost,
+              bestTimeToVisit: loc.bestTimeToVisit,
+              tips: loc.tips,
+              formatted_address: loc.formatted_address,
+              category: loc.category,
+              user_ratings_total: loc.user_ratings_total,
+            };
+
+            return marker;
+          })
+      : [];
+    if (fromLocations.length) {
+      console.log(
+        "[Markers] Locations (with coords)",
+        fromLocations.length,
+        fromLocations
+          .slice(0, 10)
+          .map((m: any) => ({ title: m.title, lat: m.lat, lng: m.lng }))
+      );
+    }
+
+    const itin = payload?.itinerary;
+    const fromItin: any[] = [];
+
+    if (itin && Array.isArray(itin.days)) {
+      itin.days.forEach((day: any, dayIdx: number) => {
+        if (Array.isArray(day?.activities)) {
+          day.activities.forEach((act: any, actIdx: number) => {
+            const c = act?.coordinates;
+            if (c && typeof c.lat === "number" && typeof c.lng === "number") {
+              const marker = {
+                id: act.id || `itin-${dayIdx + 1}-${actIdx + 1}`,
+                lat: Number(c.lat),
+                lng: Number(c.lng),
+                title: String(act.title || act.location || "Hoạt động"),
+                description: act.description,
+                type: act.type || "activity",
+
+                // ✅ ENHANCED: Map all enriched data from backend
+                name: act.title || act.name,
+                address: act.formatted_address || act.location || act.address,
+                placeId: act.place_id || act.placeId, // ✅ FIXED: Map both place_id and placeId
+                rating: act.rating,
+                photos: act.photos || [],
+                photoUrl: act.photoUrl,
+                contact: act.contact,
+                openingHours: act.openingHours,
+                priceLevel: act.priceLevel,
+                userRatingsTotal:
+                  act.userRatingsTotal || act.user_ratings_total,
+                reviews: act.reviews || [],
+                amenities: act.amenities || [],
+                estimatedCost: act.estimatedCost,
+                duration: act.duration,
+                priority: act.priority,
+                day: dayIdx + 1,
+                time: act.time,
+                formatted_address: act.formatted_address,
+                category: act.category || "itinerary",
+                user_ratings_total: act.user_ratings_total,
+              };
+
+              fromItin.push(marker);
             }
           });
         }
-        if (fromItin.length) {
-          console.log(
-            "[Markers] Itinerary activities (with coords)",
-            fromItin.length,
-            fromItin
-              .slice(0, 10)
-              .map((m: any) => ({ title: m.title, lat: m.lat, lng: m.lng }))
-          );
-        }
+      });
+    }
+    if (fromItin.length) {
+      console.log(
+        "[Markers] Itinerary activities (with coords)",
+        fromItin.length,
+        fromItin
+          .slice(0, 10)
+          .map((m: any) => ({ title: m.title, lat: m.lat, lng: m.lng }))
+      );
+    }
 
-        const merged = [...fromLocations, ...fromItin];
-        const seen = new Set<string>();
-        const unique = [] as any[];
-        for (const m of merged) {
-          const key = `${m.title}|${m.lat.toFixed(6)}|${m.lng.toFixed(6)}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            unique.push(m);
-          }
-          if (unique.length >= 30) break;
-        }
-        console.log("[Markers] Unique markers count:", unique.length);
-        return unique;
+    const merged = [...fromLocations, ...fromItin];
+    const seen = new Set<string>();
+    const unique = [] as any[];
+    for (const m of merged) {
+      const key = `${m.title}|${m.lat.toFixed(6)}|${m.lng.toFixed(6)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(m);
+      }
+      if (unique.length >= 30) break;
+    }
+    console.log("[Markers] Unique markers count:", unique.length);
+    return unique;
   }, []);
 
   // Load map state for a session
-  const loadMapStateForSession = useCallback(async (sessionId: string) => {
-    console.log(`🗺️ Loading map state for session: ${sessionId}`);
-    
-    // Try to load from localStorage first (most reliable) with user-specific key
-    const localStorageKey = `mapState:${currentUserId}:${sessionId}`;
-    
-    try {
-      const savedFromStorage = localStorage.getItem(localStorageKey);
-      console.log(`🗺️ Checking localStorage for key: ${localStorageKey}`, { exists: !!savedFromStorage });
-      
-      if (savedFromStorage) {
-        try {
-          const mapState = JSON.parse(savedFromStorage);
-          console.log(`🗺️ Parsed map state:`, { 
-            sessionId: mapState.sessionId, 
-            markersCount: mapState.markers?.length,
-            center: mapState.center,
-            zoom: mapState.zoom 
-          });
-          
-          if (mapState.markers && mapState.center) {
-            setMapMarkers(mapState.markers);
-            setMapCenter(mapState.center);
-            setMapZoom(mapState.zoom || 13);
-            console.log(`🗺️ ✅ Loaded map state from localStorage for session: ${sessionId}`, { markers: mapState.markers.length });
-            return;
-          } else {
-            console.log(`🗺️ ❌ Invalid map state data for session: ${sessionId}`);
+  const loadMapStateForSession = useCallback(
+    async (sessionId: string) => {
+      console.log(`🗺️ Loading map state for session: ${sessionId}`);
+
+      // Try to load from localStorage first (most reliable) with user-specific key
+      const localStorageKey = `mapState:${currentUserId}:${sessionId}`;
+
+      try {
+        const savedFromStorage = localStorage.getItem(localStorageKey);
+        console.log(`🗺️ Checking localStorage for key: ${localStorageKey}`, {
+          exists: !!savedFromStorage,
+        });
+
+        if (savedFromStorage) {
+          try {
+            const mapState = JSON.parse(savedFromStorage);
+            console.log(`🗺️ Parsed map state:`, {
+              sessionId: mapState.sessionId,
+              markersCount: mapState.markers?.length,
+              center: mapState.center,
+              zoom: mapState.zoom,
+            });
+
+            if (mapState.markers && mapState.center) {
+              setMapMarkers(mapState.markers);
+              setMapCenter(mapState.center);
+              setMapZoom(mapState.zoom || 13);
+              console.log(
+                `🗺️ ✅ Loaded map state from localStorage for session: ${sessionId}`,
+                { markers: mapState.markers.length }
+              );
+              return;
+            } else {
+              console.log(
+                `🗺️ ❌ Invalid map state data for session: ${sessionId}`
+              );
+            }
+          } catch (error: any) {
+            console.warn("Failed to parse saved map state:", error);
+            // Remove corrupted data
+            localStorage.removeItem(localStorageKey);
           }
-        } catch (error) {
-          console.warn('Failed to parse saved map state:', error);
-          // Remove corrupted data
-          localStorage.removeItem(localStorageKey);
+        } else {
+          console.log(
+            `🗺️ ❌ No saved map state found for session: ${sessionId}`
+          );
         }
-      } else {
-        console.log(`🗺️ ❌ No saved map state found for session: ${sessionId}`);
+      } catch (error: any) {
+        console.error("Failed to access localStorage:", error);
       }
-    } catch (error) {
-      console.error('Failed to access localStorage:', error);
-    }
-    
-    // Try to load from memory
-    const savedState = sessionMapStates[sessionId];
-    if (savedState && savedState.markers && savedState.center) {
-      setMapMarkers(savedState.markers);
-      setMapCenter(savedState.center);
-      setMapZoom(savedState.zoom);
-      console.log(`🗺️ Loaded saved map state for session: ${sessionId}`, { markers: savedState.markers.length });
-      return;
-    }
-    
-    // Try to load from session messages
-    try {
-      const session = await ChatService.getChatSession(sessionId);
-      if (session?.messages) {
-        // Find last bot message with payload
-        const lastBotMessage = session.messages
-          .filter((msg: any) => msg.role === 'assistant')
-          .pop();
-        
-        if (lastBotMessage?.payload) {
-          const markers = buildMarkersFromPayload(lastBotMessage.payload);
-          if (markers.length > 0) {
-            setMapMarkers(markers);
-            setMapCenter(markers[0]);
-            setMapZoom(13);
-            
-            // Save this state
-            saveMapStateForSession(sessionId, markers, markers[0]);
-            console.log(`🗺️ Loaded map from session messages for session: ${sessionId}`, { markers: markers.length });
+
+      // Try to load from memory
+      const savedState = sessionMapStates[sessionId];
+      if (savedState && savedState.markers && savedState.center) {
+        setMapMarkers(savedState.markers);
+        setMapCenter(savedState.center);
+        setMapZoom(savedState.zoom);
+        console.log(`🗺️ Loaded saved map state for session: ${sessionId}`, {
+          markers: savedState.markers.length,
+        });
+        return;
+      }
+
+      // Try to load from session messages
+      try {
+        const session = await ChatService.getChatSession(sessionId);
+        if (session?.messages) {
+          // Find last bot message with payload
+          const messages = session.messages as any[];
+          const lastBotMessage = messages
+            .filter((msg) => msg.role === "assistant")
+            .pop();
+
+          if (lastBotMessage?.payload) {
+            const markers = buildMarkersFromPayload(lastBotMessage.payload);
+            if (markers.length > 0) {
+              setMapMarkers(markers);
+              setMapCenter(markers[0]);
+              setMapZoom(13);
+
+              // Save this state
+              saveMapStateForSession(sessionId, markers, markers[0]);
+              console.log(
+                `🗺️ Loaded map from session messages for session: ${sessionId}`,
+                { markers: markers.length }
+              );
+            }
           }
         }
+      } catch (error: any) {
+        console.error("Failed to load map from session messages:", error);
       }
-    } catch (error) {
-      console.error('Failed to load map from session messages:', error);
-    }
-  }, [sessionMapStates, saveMapStateForSession, buildMarkersFromPayload, currentUserId]);
+    },
+    [
+      sessionMapStates,
+      saveMapStateForSession,
+      buildMarkersFromPayload,
+      currentUserId,
+    ]
+  );
 
   const handleSendMessage = async () => {
     if (!isAuthenticated) {
@@ -525,8 +578,11 @@ const ChatPage: React.FC = () => {
           );
           return;
         }
-      } catch (e) {
-        console.warn("[ChatPage] Could not verify session limit, allowing send.", e);
+      } catch (e: any) {
+        console.warn(
+          "[ChatPage] Could not verify session limit, allowing send.",
+          e
+        );
       }
     }
 
@@ -534,7 +590,10 @@ const ChatPage: React.FC = () => {
     try {
       const limitRes = await subscriptionService.checkMessageLimit();
       if (!limitRes.success) {
-        setMessageLimitNotice(limitRes.error || "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục.");
+        setMessageLimitNotice(
+          limitRes.error ||
+            "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục."
+        );
         return;
       }
     } catch (e: any) {
@@ -591,18 +650,20 @@ const ChatPage: React.FC = () => {
 
       // ✅ SIMPLIFIED: Process map markers from response
       let newMarkers: any[] = [];
-      let newCenter: {lat: number, lng: number} | null = null;
-      
+      let newCenter: { lat: number; lng: number } | null = null;
+
       // Try to get markers from response payload
       if ((data as any)?.payload) {
         try {
           newMarkers = buildMarkersFromPayload((data as any).payload);
-          console.log(`🗺️ [DEBUG] Got ${newMarkers.length} markers from response payload`);
-        } catch (error) {
+          console.log(
+            `🗺️ [DEBUG] Got ${newMarkers.length} markers from response payload`
+          );
+        } catch (error: any) {
           console.error(`🗺️ [DEBUG] Error processing payload:`, error);
         }
       }
-      
+
       // If no markers from response, try localStorage fallback
       if (newMarkers.length === 0) {
         try {
@@ -611,13 +672,18 @@ const ChatPage: React.FC = () => {
           if (raw) {
             const parsed = JSON.parse(raw);
             newMarkers = buildMarkersFromPayload(parsed);
-            console.log(`🗺️ [DEBUG] Got ${newMarkers.length} markers from localStorage fallback`);
+            console.log(
+              `🗺️ [DEBUG] Got ${newMarkers.length} markers from localStorage fallback`
+            );
           }
-        } catch (error) {
-          console.error(`🗺️ [DEBUG] Error processing localStorage fallback:`, error);
+        } catch (error: any) {
+          console.error(
+            `🗺️ [DEBUG] Error processing localStorage fallback:`,
+            error
+          );
         }
       }
-      
+
       // Update map if we have new markers
       if (newMarkers.length > 0) {
         setMapMarkers(newMarkers);
@@ -626,25 +692,33 @@ const ChatPage: React.FC = () => {
           newCenter = { lat: first.lat, lng: first.lng };
           setMapCenter(newCenter);
           setMapZoom(13);
-          console.log(`🗺️ [DEBUG] Updated map with ${newMarkers.length} markers`);
+          console.log(
+            `🗺️ [DEBUG] Updated map with ${newMarkers.length} markers`
+          );
         }
       }
-      
+
       // ✅ SIMPLIFIED: Always save current map state for this session
       const markersToSave = newMarkers.length > 0 ? newMarkers : mapMarkers;
-      const centerToSave = newCenter || mapCenter || { lat: 10.7769, lng: 106.6951 };
-      
+      const centerToSave = newCenter ||
+        mapCenter || { lat: 10.7769, lng: 106.6951 };
+
       saveMapStateForSession(currentSessionId, markersToSave, centerToSave);
-      console.log(`🗺️ ✅ Saved map state for session: ${currentSessionId}`, { 
-        markers: markersToSave.length, 
-        center: centerToSave
+      console.log(`🗺️ ✅ Saved map state for session: ${currentSessionId}`, {
+        markers: markersToSave.length,
+        center: centerToSave,
       });
-      
     } catch (err: any) {
       console.error("[ChatPage] send error", err);
-      const msg = (err && (err.message || err.error)) || "Đã xảy ra lỗi khi gửi tin nhắn.";
+      const msg =
+        (err && (err.message || err.error)) ||
+        "Đã xảy ra lỗi khi gửi tin nhắn.";
       // If backend enforces message limit, surface it to UI
-      if (/lượt chat miễn phí|MESSAGE_LIMIT_EXCEEDED|hết lượt chat/i.test(String(msg))) {
+      if (
+        /lượt chat miễn phí|MESSAGE_LIMIT_EXCEEDED|hết lượt chat/i.test(
+          String(msg)
+        )
+      ) {
         setMessageLimitNotice(String(msg));
       }
     } finally {
@@ -657,10 +731,13 @@ const ChatPage: React.FC = () => {
     // ✅ Save current session's map state BEFORE switching
     if (sessionId && mapMarkers.length > 0 && mapCenter) {
       saveMapStateForSession(sessionId, mapMarkers, mapCenter);
-      console.log(`🗺️ 💾 Saved current map state before switching away from: ${sessionId}`, {
-        markers: mapMarkers.length,
-        center: mapCenter
-      });
+      console.log(
+        `🗺️ 💾 Saved current map state before switching away from: ${sessionId}`,
+        {
+          markers: mapMarkers.length,
+          center: mapCenter,
+        }
+      );
     }
 
     // Set selected session immediately for UI
@@ -679,19 +756,28 @@ const ChatPage: React.FC = () => {
             );
             return; // Do not create a new session state
           }
-        } catch (e) {
-          console.warn("[ChatPage] Could not verify session limit on new chat.", e);
+        } catch (e: any) {
+          console.warn(
+            "[ChatPage] Could not verify session limit on new chat.",
+            e
+          );
         }
       }
       // Also pre-check message limit before preparing new chat box
       try {
         const limitRes = await subscriptionService.checkMessageLimit();
         if (!limitRes.success) {
-          setMessageLimitNotice(limitRes.error || "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục.");
+          setMessageLimitNotice(
+            limitRes.error ||
+              "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục."
+          );
           return;
         }
       } catch (e: any) {
-        console.warn("[ChatPage] checkMessageLimit error (new chat)", e?.message || e);
+        console.warn(
+          "[ChatPage] checkMessageLimit error (new chat)",
+          e?.message || e
+        );
       }
       // New chat: clear and switch to chat view
       setMessages([]);
@@ -720,7 +806,7 @@ const ChatPage: React.FC = () => {
         );
         setMessages(frontendMessages);
         setSessionId(nextSessionId);
-        
+
         // Load map state for this session
         console.log(`🗺️ 🔄 Switching to session: ${nextSessionId}`);
         // Clear current map to avoid showing old map while loading
@@ -728,37 +814,55 @@ const ChatPage: React.FC = () => {
         // Load target session map state
         await loadMapStateForSession(nextSessionId);
         console.log(`🗺️ ✅ Completed loading session: ${nextSessionId}`);
-        
+
         // Tự động đóng panel lịch sử để hiển thị nội dung chat
         setShowChatHistory(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[ChatPage] Failed to load session:", error);
-      
+
       // Handle specific error cases
-      if (error.message?.includes('Network error') || error.message?.includes('CORS')) {
-        console.warn("[ChatPage] Backend connection issue, trying to load from localStorage only");
-        
+      if (
+        error.message?.includes("Network error") ||
+        error.message?.includes("CORS")
+      ) {
+        console.warn(
+          "[ChatPage] Backend connection issue, trying to load from localStorage only"
+        );
+
         // Try to load map state from localStorage even if session load failed
         try {
           await loadMapStateForSession(nextSessionId);
-          console.log(`🗺️ ✅ Loaded map state from localStorage despite session load failure`);
-        } catch (mapError) {
+          console.log(
+            `🗺️ ✅ Loaded map state from localStorage despite session load failure`
+          );
+        } catch (mapError: any) {
           console.warn("[ChatPage] Could not load map state either:", mapError);
         }
-        
+
         // Try to load messages from localStorage as fallback
         try {
           const localStorageKey = `chat:lastPayload:${nextSessionId}`;
           const savedPayload = localStorage.getItem(localStorageKey);
           if (savedPayload) {
-            const payload = JSON.parse(savedPayload);
-            console.log("[ChatPage] Found saved payload for session:", nextSessionId);
-            
+            JSON.parse(savedPayload);
+            console.log(
+              "[ChatPage] Found saved payload for session:",
+              nextSessionId
+            );
+
             // Create mock messages from payload if available
             const mockMessages = [
-              { id: `${nextSessionId}-0`, type: "user", content: "User message" },
-              { id: `${nextSessionId}-1`, type: "bot", content: "AI response with locations and itinerary" }
+              {
+                id: `${nextSessionId}-0`,
+                type: "user",
+                content: "User message",
+              },
+              {
+                id: `${nextSessionId}-1`,
+                type: "bot",
+                content: "AI response with locations and itinerary",
+              },
             ];
             setMessages(mockMessages);
             setSessionId(nextSessionId);
@@ -769,37 +873,57 @@ const ChatPage: React.FC = () => {
             const savedHistory = localStorage.getItem(chatHistoryKey);
             if (savedHistory) {
               const history = JSON.parse(savedHistory);
-              const sessionInfo = history.sessions?.find((s: any) => s.sessionId === nextSessionId);
+              const sessionInfo = history.sessions?.find(
+                (s: any) => s.sessionId === nextSessionId
+              );
               if (sessionInfo) {
-                console.log("[ChatPage] Found session info in chat history:", sessionInfo);
+                console.log(
+                  "[ChatPage] Found session info in chat history:",
+                  sessionInfo
+                );
                 setSessionId(nextSessionId);
                 // Create basic messages from session info
                 const basicMessages = [
-                  { id: `${nextSessionId}-0`, type: "user", content: "Previous conversation" },
-                  { id: `${nextSessionId}-1`, type: "bot", content: "AI response with travel suggestions" }
+                  {
+                    id: `${nextSessionId}-0`,
+                    type: "user",
+                    content: "Previous conversation",
+                  },
+                  {
+                    id: `${nextSessionId}-1`,
+                    type: "bot",
+                    content: "AI response with travel suggestions",
+                  },
                 ];
                 setMessages(basicMessages);
-                console.log("[ChatPage] Loaded basic messages from chat history");
+                console.log(
+                  "[ChatPage] Loaded basic messages from chat history"
+                );
               }
             }
           }
-        } catch (payloadError) {
-          console.warn("[ChatPage] Failed to load from localStorage:", payloadError);
+        } catch (payloadError: any) {
+          console.warn(
+            "[ChatPage] Failed to load from localStorage:",
+            payloadError
+          );
         }
-        
+
         // Don't clear messages and sessionId on network errors - keep current state
-        console.log("[ChatPage] Keeping current chat state due to network error");
+        console.log(
+          "[ChatPage] Keeping current chat state due to network error"
+        );
         setShowChatHistory(false);
         return;
       } else {
         // For other errors, still try to load map state
         try {
           await loadMapStateForSession(nextSessionId);
-        } catch (mapError) {
+        } catch (mapError: any) {
           console.warn("[ChatPage] Could not load map state:", mapError);
         }
       }
-      
+
       // Only clear messages for non-network errors
       setMessages([]);
       setSessionId(undefined);
@@ -815,44 +939,55 @@ const ChatPage: React.FC = () => {
   // Stable map callbacks to avoid re-initializing map while typing
   const handleMapMarkerClick = useCallback(async (marker: any) => {
     console.log("Marker clicked:", marker);
-    
-    
+
     setSelectedMarker(marker);
     setShowMarkerDetails(true);
     setMarkerDetailLoading(true);
 
     try {
       // ✅ ENHANCED: Check if marker has enriched data from backend
-      if (marker.placeId && marker.placeId.startsWith('ChIJ')) {
+      if (marker.placeId && marker.placeId.startsWith("ChIJ")) {
         // This is a valid Google Maps placeId - try to get additional details
         try {
-          const placeDetail = await exploreService.getById(marker.placeId, "auto");
+          const placeDetail = await exploreService.getById(
+            marker.placeId,
+            "auto"
+          );
           // Merge backend data with API data
           const enrichedMarker = {
             ...marker,
             ...placeDetail,
             // Keep backend data as priority
-            photos: marker.photos?.length > 0 ? marker.photos : placeDetail.photos,
+            photos:
+              marker.photos?.length > 0 ? marker.photos : placeDetail.photos,
             rating: marker.rating || placeDetail.rating,
-            reviews: marker.reviews?.length > 0 ? marker.reviews : placeDetail.reviews
+            reviews:
+              marker.reviews?.length > 0 ? marker.reviews : placeDetail.reviews,
           };
           setSelectedMarker(enrichedMarker);
           setMarkerDetailLoading(false);
-          console.log("Marker details loaded from Google Maps + Backend:", enrichedMarker);
-        } catch (apiError) {
+          console.log(
+            "Marker details loaded from Google Maps + Backend:",
+            enrichedMarker
+          );
+        } catch (apiError: any) {
           console.warn("API call failed, using backend data:", apiError);
           // ✅ FIXED: If API fails, use marker data directly (it should have enriched data from backend)
           console.log("Using enriched marker data from backend:", marker);
           setSelectedMarker(marker);
           setMarkerDetailLoading(false);
         }
-      } else if (marker.photos?.length > 0 || marker.rating || marker.reviews?.length > 0) {
+      } else if (
+        marker.photos?.length > 0 ||
+        marker.rating ||
+        marker.reviews?.length > 0
+      ) {
         // ✅ ENHANCED: Marker has enriched data from backend, use it directly
         console.log("Using enriched marker data from backend:", {
           photos: marker.photos?.length || 0,
           rating: marker.rating,
           reviews: marker.reviews?.length || 0,
-          amenities: marker.amenities?.length || 0
+          amenities: marker.amenities?.length || 0,
         });
         setSelectedMarker(marker);
         setMarkerDetailLoading(false);
@@ -862,46 +997,57 @@ const ChatPage: React.FC = () => {
           // Use Google Maps Places API to find place by coordinates and name
           const geocoder = new window.google.maps.Geocoder();
           const latlng = new window.google.maps.LatLng(marker.lat, marker.lng);
-          
-          geocoder.geocode({ location: latlng }, (results, status) => {
-            if (status === 'OK' && results && results.length > 0) {
-              // Find the result that matches the marker title
-              const matchingResult = results.find(result => 
-                result.formatted_address.includes(marker.title) ||
-                result.address_components.some(component => 
-                  component.long_name.includes(marker.title)
-                )
-              );
-              
-              if (matchingResult) {
-                const placeId = matchingResult.place_id;
-                // Now get place details using the placeId
-                exploreService.getById(placeId, "auto")
-                  .then(placeDetail => {
-                    setSelectedMarker(placeDetail);
-                    setMarkerDetailLoading(false);
-                    console.log("Marker details loaded via geocoding:", placeDetail);
-                  })
-                  .catch(error => {
-                    console.error("Failed to get place details after geocoding:", error);
-                    setSelectedMarker(marker);
-                    setMarkerDetailLoading(false);
-                  })
-                  .finally(() => {
-                    setMarkerDetailLoading(false);
-                  });
+
+          geocoder.geocode(
+            { location: latlng },
+            (results: any, status: any) => {
+              if (status === "OK" && results && results.length > 0) {
+                // Find the result that matches the marker title
+                const matchingResult = results.find(
+                  (result: any) =>
+                    result.formatted_address.includes(marker.title) ||
+                    result.address_components.some((component: any) =>
+                      component.long_name.includes(marker.title)
+                    )
+                );
+
+                if (matchingResult) {
+                  const placeId = matchingResult.place_id;
+                  // Now get place details using the placeId
+                  exploreService
+                    .getById(placeId, "auto")
+                    .then((placeDetail) => {
+                      setSelectedMarker(placeDetail);
+                      setMarkerDetailLoading(false);
+                      console.log(
+                        "Marker details loaded via geocoding:",
+                        placeDetail
+                      );
+                    })
+                    .catch((error) => {
+                      console.error(
+                        "Failed to get place details after geocoding:",
+                        error
+                      );
+                      setSelectedMarker(marker);
+                      setMarkerDetailLoading(false);
+                    })
+                    .finally(() => {
+                      setMarkerDetailLoading(false);
+                    });
+                } else {
+                  // No matching result found, use marker data
+                  setSelectedMarker(marker);
+                  setMarkerDetailLoading(false);
+                }
               } else {
-                // No matching result found, use marker data
+                console.error("Geocoding failed:", status);
                 setSelectedMarker(marker);
                 setMarkerDetailLoading(false);
               }
-            } else {
-              console.error("Geocoding failed:", status);
-              setSelectedMarker(marker);
-              setMarkerDetailLoading(false);
             }
-          });
-        } catch (geocodeError) {
+          );
+        } catch (geocodeError: any) {
           console.error("Geocoding error:", geocodeError);
           setSelectedMarker(marker);
           setMarkerDetailLoading(false);
@@ -912,13 +1058,54 @@ const ChatPage: React.FC = () => {
         setSelectedMarker(marker);
         setMarkerDetailLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch marker details:", error);
       // Fallback: use marker data as is
       setSelectedMarker(marker);
       setMarkerDetailLoading(false);
     }
   }, []);
+
+  function extractRatingValue(data?: {
+    rating?: number | { average?: number };
+    ratingAverage?: number;
+  }): number | undefined {
+    if (!data) return undefined;
+    if (typeof data.ratingAverage === "number") return data.ratingAverage;
+    const rating = data.rating;
+    if (typeof rating === "number") return rating;
+    if (
+      rating &&
+      typeof rating === "object" &&
+      typeof rating.average === "number"
+    ) {
+      return rating.average;
+    }
+    return undefined;
+  }
+
+  function extractRatingCount(data?: {
+    rating?: number | { count?: number };
+    ratingCount?: number;
+    userRatingsTotal?: number;
+    user_ratings_total?: number;
+  }): number | undefined {
+    if (!data) return undefined;
+    const rating = data.rating;
+    if (
+      rating &&
+      typeof rating === "object" &&
+      typeof rating.count === "number"
+    ) {
+      return rating.count;
+    }
+    if (typeof data.ratingCount === "number") return data.ratingCount;
+    if (typeof data.userRatingsTotal === "number") return data.userRatingsTotal;
+    if (typeof (data as any).user_ratings_total === "number") {
+      return (data as any).user_ratings_total;
+    }
+    return undefined;
+  }
 
   const handleMapClickStable = useCallback((lat: number, lng: number) => {
     console.log("Map clicked at:", lat, lng);
@@ -1028,19 +1215,28 @@ const ChatPage: React.FC = () => {
           );
           return;
         }
-      } catch (e) {
-        console.warn("[ChatPage] Could not verify session limit (QuickPlan).", e);
+      } catch (e: any) {
+        console.warn(
+          "[ChatPage] Could not verify session limit (QuickPlan).",
+          e
+        );
       }
     }
     // Check message limit for QuickPlan
     try {
       const limitRes = await subscriptionService.checkMessageLimit();
       if (!limitRes.success) {
-        setMessageLimitNotice(limitRes.error || "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục.");
+        setMessageLimitNotice(
+          limitRes.error ||
+            "Bạn đã hết lượt chat miễn phí. Vui lòng nâng cấp để tiếp tục."
+        );
         return;
       }
     } catch (e: any) {
-      console.warn("[ChatPage] checkMessageLimit error (QuickPlan)", e?.message || e);
+      console.warn(
+        "[ChatPage] checkMessageLimit error (QuickPlan)",
+        e?.message || e
+      );
     }
     await setTimeout(() => {}, 0);
     // Reuse normal send
@@ -1071,8 +1267,8 @@ const ChatPage: React.FC = () => {
       // After chat completes: update map markers (same logic as handleSendMessage)
       let appliedImmediate = false;
       let finalMarkers: any[] = [];
-      let finalCenter: {lat: number, lng: number} | null = null;
-      
+      let finalCenter: { lat: number; lng: number } | null = null;
+
       try {
         const immediate = buildMarkersFromPayload((data as any)?.payload);
         if (immediate.length) {
@@ -1085,7 +1281,10 @@ const ChatPage: React.FC = () => {
           if (first?.lat && first?.lng) {
             setMapCenter({ lat: first.lat, lng: first.lng });
             setMapZoom((z) => (z < 5 || z > 18 ? 13 : z));
-            console.log("[Markers] Center map to first marker (QuickPlan):", first);
+            console.log(
+              "[Markers] Center map to first marker (QuickPlan):",
+              first
+            );
             finalMarkers = immediate;
             finalCenter = { lat: first.lat, lng: first.lng };
           }
@@ -1095,9 +1294,7 @@ const ChatPage: React.FC = () => {
 
       // 2) Fallback: update map markers from BE structured payload persisted by ChatService
       try {
-        const storageKey = `chat:lastPayload:${
-          data.sessionId || sessionId
-        }`;
+        const storageKey = `chat:lastPayload:${data.sessionId || sessionId}`;
         const raw = localStorage.getItem(storageKey);
         if (raw && !appliedImmediate) {
           const parsed = JSON.parse(raw);
@@ -1112,7 +1309,10 @@ const ChatPage: React.FC = () => {
             if (first?.lat && first?.lng) {
               setMapCenter({ lat: first.lat, lng: first.lng });
               setMapZoom((z) => (z < 5 || z > 18 ? 13 : z));
-              console.log("[Markers] Center map to first marker (QuickPlan fallback):", first);
+              console.log(
+                "[Markers] Center map to first marker (QuickPlan fallback):",
+                first
+              );
               finalMarkers = unique;
               finalCenter = { lat: first.lat, lng: first.lng };
             }
@@ -1122,13 +1322,24 @@ const ChatPage: React.FC = () => {
 
       // 3) Save map state for session
       if (finalMarkers.length > 0 && finalCenter) {
-        saveMapStateForSession(data.sessionId || sessionId, finalMarkers, finalCenter);
-        console.log(`🗺️ Saved map state for QuickPlan session: ${data.sessionId || sessionId}`, { markers: finalMarkers.length });
+        const targetSessionId = data.sessionId || sessionId;
+        if (targetSessionId) {
+          saveMapStateForSession(targetSessionId, finalMarkers, finalCenter);
+          console.log(
+            `🗺️ Saved map state for QuickPlan session: ${targetSessionId}`,
+            { markers: finalMarkers.length }
+          );
+        }
       }
     } catch (e: any) {
       console.warn("[ChatPage] quick plan send error", e);
-      const msg = (e && (e.message || e.error)) || "Đã xảy ra lỗi khi gửi yêu cầu.";
-      if (/lượt chat miễn phí|MESSAGE_LIMIT_EXCEEDED|hết lượt chat/i.test(String(msg))) {
+      const msg =
+        (e && (e.message || e.error)) || "Đã xảy ra lỗi khi gửi yêu cầu.";
+      if (
+        /lượt chat miễn phí|MESSAGE_LIMIT_EXCEEDED|hết lượt chat/i.test(
+          String(msg)
+        )
+      ) {
         setMessageLimitNotice(String(msg));
       }
       setInputValue(prev);
@@ -1161,8 +1372,11 @@ const ChatPage: React.FC = () => {
         } else {
           setUserPlan("free");
         }
-      } catch (e) {
-        console.warn("[ChatPage] Failed to load subscription, default to free", e);
+      } catch (e: any) {
+        console.warn(
+          "[ChatPage] Failed to load subscription, default to free",
+          e
+        );
         setUserPlan("free");
       }
     };
@@ -1173,38 +1387,40 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const loadSavedMapStates = () => {
       if (!currentUserId) {
-        console.log('🗺️ No currentUserId, skipping map state load');
+        console.log("🗺️ No currentUserId, skipping map state load");
         return;
       }
-      
+
       const savedStates: Record<string, SessionMapState> = {};
       const userPrefix = `mapState:${currentUserId}:`;
-      
+
       // First, try to load user-specific states
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key?.startsWith(userPrefix)) {
-          const sessionId = key.replace(userPrefix, '');
+          const sessionId = key.replace(userPrefix, "");
           try {
-            const state = JSON.parse(localStorage.getItem(key) || '{}');
+            const state = JSON.parse(localStorage.getItem(key) || "{}");
             if (state.sessionId && state.markers && state.center) {
               savedStates[sessionId] = state;
             }
-          } catch (error) {
-            console.warn('Failed to parse saved map state:', error);
+          } catch (error: any) {
+            console.warn("Failed to parse saved map state:", error);
           }
         }
       }
-      
+
       // If no user-specific states found, try to migrate old format
       if (Object.keys(savedStates).length === 0) {
-        console.log('🗺️ No user-specific map states found, checking for old format...');
+        console.log(
+          "🗺️ No user-specific map states found, checking for old format..."
+        );
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key?.startsWith('mapState:') && !key.includes(':')) {
-            const sessionId = key.replace('mapState:', '');
+          if (key?.startsWith("mapState:") && !key.includes(":")) {
+            const sessionId = key.replace("mapState:", "");
             try {
-              const state = JSON.parse(localStorage.getItem(key) || '{}');
+              const state = JSON.parse(localStorage.getItem(key) || "{}");
               if (state.sessionId && state.markers && state.center) {
                 // Migrate to new format
                 const newKey = `mapState:${currentUserId}:${sessionId}`;
@@ -1213,17 +1429,22 @@ const ChatPage: React.FC = () => {
                 savedStates[sessionId] = state;
                 console.log(`🗺️ Migrated map state: ${key} → ${newKey}`);
               }
-            } catch (error) {
-              console.warn('Failed to migrate map state:', error);
+            } catch (error: any) {
+              console.warn("Failed to migrate map state:", error);
             }
           }
         }
       }
-      
+
       setSessionMapStates(savedStates);
-      console.log('🗺️ Loaded saved map states for user:', currentUserId, 'count:', Object.keys(savedStates).length);
+      console.log(
+        "🗺️ Loaded saved map states for user:",
+        currentUserId,
+        "count:",
+        Object.keys(savedStates).length
+      );
     };
-    
+
     loadSavedMapStates();
   }, [currentUserId]);
 
@@ -1303,7 +1524,7 @@ const ChatPage: React.FC = () => {
             "[ChatPage] No stored structured payload for session; BE likely returned text only"
           );
         }
-      } catch (e) {
+      } catch (e: any) {
         console.warn("[ChatPage] Failed to read stored payload:", e);
       }
     } else {
@@ -1385,24 +1606,26 @@ const ChatPage: React.FC = () => {
 
   // Auto-load latest chat session on mount/auth ready
   useEffect(() => {
-    console.log("[ChatPage] useEffect triggered for auto-load:", { 
-      isAuthenticated, 
-      currentUserId, 
-      hasLoadedInitialSession 
+    console.log("[ChatPage] useEffect triggered for auto-load:", {
+      isAuthenticated,
+      currentUserId,
+      hasLoadedInitialSession,
     });
-    
+
     const init = async () => {
-      console.log("[ChatPage] Auto-load check:", { 
-        isAuthenticated, 
-        currentUserId, 
-        hasLoadedInitialSession 
+      console.log("[ChatPage] Auto-load check:", {
+        isAuthenticated,
+        currentUserId,
+        hasLoadedInitialSession,
       });
-      
+
       if (!isAuthenticated || !currentUserId || hasLoadedInitialSession) {
         console.log("[ChatPage] Auto-load skipped:", {
-          reason: !isAuthenticated ? "not authenticated" : 
-                  !currentUserId ? "no userId" : 
-                  "already loaded"
+          reason: !isAuthenticated
+            ? "not authenticated"
+            : !currentUserId
+            ? "no userId"
+            : "already loaded",
         });
         return;
       }
@@ -1410,50 +1633,63 @@ const ChatPage: React.FC = () => {
       // Add a small delay to avoid race condition with ChatHistorySidebar
       const timer = setTimeout(async () => {
         try {
-          console.log("[ChatPage] Fetching chat sessions for user:", currentUserId);
+          console.log(
+            "[ChatPage] Fetching chat sessions for user:",
+            currentUserId
+          );
           const list = await ChatService.getChatSessions(currentUserId);
           const sessions = Array.isArray(list.sessions) ? list.sessions : [];
           console.log("[ChatPage] Found sessions:", sessions.length);
           if (sessions.length === 0) {
-            console.log("[ChatPage] No chat sessions found, checking for any saved map states");
+            console.log(
+              "[ChatPage] No chat sessions found, checking for any saved map states"
+            );
             // Try to load the most recent map state from localStorage
             try {
               const savedStates: Record<string, SessionMapState> = {};
               const userPrefix = `mapState:${currentUserId}:`;
-              
+
               for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key?.startsWith(userPrefix)) {
-                  const sessionId = key.replace(userPrefix, '');
+                  const sessionId = key.replace(userPrefix, "");
                   try {
-                    const state = JSON.parse(localStorage.getItem(key) || '{}');
+                    const state = JSON.parse(localStorage.getItem(key) || "{}");
                     if (state.sessionId && state.markers && state.center) {
                       savedStates[sessionId] = state;
                     }
-                  } catch (error) {
-                    console.warn('Failed to parse saved map state:', error);
+                  } catch (error: any) {
+                    console.warn("Failed to parse saved map state:", error);
                   }
                 }
               }
-              
+
               // Find the most recent map state
-              const sortedStates = Object.values(savedStates).sort((a, b) => 
-                new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+              const sortedStates = Object.values(savedStates).sort(
+                (a, b) =>
+                  new Date(b.lastUpdated).getTime() -
+                  new Date(a.lastUpdated).getTime()
               );
-              
+
               if (sortedStates.length > 0) {
                 const latestMapState = sortedStates[0];
                 setMapMarkers(latestMapState.markers);
                 setMapCenter(latestMapState.center);
                 setMapZoom(latestMapState.zoom);
-                console.log(`🗺️ ✅ Loaded most recent map state: ${latestMapState.sessionId}`, { 
-                  markers: latestMapState.markers.length 
-                });
+                console.log(
+                  `🗺️ ✅ Loaded most recent map state: ${latestMapState.sessionId}`,
+                  {
+                    markers: latestMapState.markers.length,
+                  }
+                );
               }
-            } catch (mapError) {
-              console.warn("[ChatPage] Failed to load fallback map state:", mapError);
+            } catch (mapError: any) {
+              console.warn(
+                "[ChatPage] Failed to load fallback map state:",
+                mapError
+              );
             }
-            
+
             setHasLoadedInitialSession(true);
             return;
           }
@@ -1478,12 +1714,20 @@ const ChatPage: React.FC = () => {
           }
 
           // load messages for latest session
-          console.log("[ChatPage] Loading session detail for:", latest.sessionId);
+          console.log(
+            "[ChatPage] Loading session detail for:",
+            latest.sessionId
+          );
           const sessionDetail = await ChatService.getChatSession(
             latest.sessionId
           );
-          console.log("[ChatPage] Session detail loaded:", !!sessionDetail, "messages:", sessionDetail?.messages?.length);
-          
+          console.log(
+            "[ChatPage] Session detail loaded:",
+            !!sessionDetail,
+            "messages:",
+            sessionDetail?.messages?.length
+          );
+
           if (sessionDetail && Array.isArray(sessionDetail.messages)) {
             const frontendMessages = sessionDetail.messages.map(
               (msg: any, index: number) => ({
@@ -1496,14 +1740,21 @@ const ChatPage: React.FC = () => {
             setSessionId(latest.sessionId);
             setSelectedSessionId(latest.sessionId);
             setShowChatHistory(false);
-            
+
             // Load map state for the latest session
-            console.log(`🗺️ 🔄 Auto-loading latest session: ${latest.sessionId}`);
+            console.log(
+              `🗺️ 🔄 Auto-loading latest session: ${latest.sessionId}`
+            );
             try {
               await loadMapStateForSession(latest.sessionId);
-              console.log(`🗺️ ✅ Auto-loaded map state for latest session: ${latest.sessionId}`);
-            } catch (mapError) {
-              console.warn(`🗺️ ⚠️ Failed to load map state for latest session: ${latest.sessionId}`, mapError);
+              console.log(
+                `🗺️ ✅ Auto-loaded map state for latest session: ${latest.sessionId}`
+              );
+            } catch (mapError: any) {
+              console.warn(
+                `🗺️ ⚠️ Failed to load map state for latest session: ${latest.sessionId}`,
+                mapError
+              );
             }
             // Log all AI messages for inspection on entering chat
             const aiMessages = frontendMessages.filter(
@@ -1522,11 +1773,11 @@ const ChatPage: React.FC = () => {
             }
           }
           setHasLoadedInitialSession(true);
-        } catch (e) {
+        } catch (e: any) {
           console.warn("[ChatPage] Failed to load latest session", e);
           console.log("[ChatPage] Error details:", {
             message: e.message,
-            stack: e.stack
+            stack: e.stack,
           });
           setHasLoadedInitialSession(true);
         }
@@ -1544,10 +1795,13 @@ const ChatPage: React.FC = () => {
       // Save current map state when component unmounts
       if (sessionId && mapMarkers.length > 0 && mapCenter) {
         saveMapStateForSession(sessionId, mapMarkers, mapCenter);
-        console.log(`🗺️ 💾 Saved map state on unmount for session: ${sessionId}`, {
-          markers: mapMarkers.length,
-          center: mapCenter
-        });
+        console.log(
+          `🗺️ 💾 Saved map state on unmount for session: ${sessionId}`,
+          {
+            markers: mapMarkers.length,
+            center: mapCenter,
+          }
+        );
       }
     };
   }, [sessionId, mapMarkers, mapCenter, saveMapStateForSession]);
@@ -1557,7 +1811,7 @@ const ChatPage: React.FC = () => {
     console.log(`🗺️ [DEBUG] mapMarkers changed:`, {
       count: mapMarkers.length,
       sessionId: sessionId,
-      hasCenter: !!mapCenter
+      hasCenter: !!mapCenter,
     });
   }, [mapMarkers, sessionId, mapCenter]);
 
@@ -1569,10 +1823,10 @@ const ChatPage: React.FC = () => {
         saveMapStateForSession(sessionId, mapMarkers, mapCenter);
         console.log(`🗺️ 💾 Auto-saved map state for session: ${sessionId}`, {
           markers: mapMarkers.length,
-          center: mapCenter
+          center: mapCenter,
         });
       }, 500);
-      
+
       return () => clearTimeout(timer);
     }
   }, [mapMarkers, mapCenter, sessionId, saveMapStateForSession]);
@@ -1582,17 +1836,22 @@ const ChatPage: React.FC = () => {
     const cleanupOnMount = () => {
       try {
         const keys = Object.keys(localStorage);
-        const mapStateKeys = keys.filter(key => key.startsWith(`mapState:${currentUserId}:`));
-        
-        if (mapStateKeys.length > 20) { // If more than 20 map states, clean up
-          console.log(`🗑️ Found ${mapStateKeys.length} map states, cleaning up old ones...`);
+        const mapStateKeys = keys.filter((key) =>
+          key.startsWith(`mapState:${currentUserId}:`)
+        );
+
+        if (mapStateKeys.length > 20) {
+          // If more than 20 map states, clean up
+          console.log(
+            `🗑️ Found ${mapStateKeys.length} map states, cleaning up old ones...`
+          );
           cleanupOldMapStates();
         }
-      } catch (error) {
-        console.error('Failed to cleanup on mount:', error);
+      } catch (error: any) {
+        console.error("Failed to cleanup on mount:", error);
       }
     };
-    
+
     if (currentUserId) {
       cleanupOnMount();
     }
@@ -1790,9 +2049,12 @@ const ChatPage: React.FC = () => {
                     : "Ngân sách"}
                 </button>
                 <div className="qp-pill-divider" />
-                <button className="qp-pill" onClick={() => setQpOpen("preferences")}>
-                  {qpPreferences.length > 0 
-                    ? `${qpPreferences.length} sở thích` 
+                <button
+                  className="qp-pill"
+                  onClick={() => setQpOpen("preferences")}
+                >
+                  {qpPreferences.length > 0
+                    ? `${qpPreferences.length} sở thích`
                     : "Sở thích"}
                 </button>
               </div>
@@ -1879,14 +2141,20 @@ const ChatPage: React.FC = () => {
                 </div>
                 <div className="qp-row">
                   <label>Số người</label>
-                    <div className="qp-counter">
-                    <button onClick={() => setQpTravelers(Math.max(1, qpTravelers - 1))}>
-                        –
-                      </button>
+                  <div className="qp-counter">
+                    <button
+                      onClick={() =>
+                        setQpTravelers(Math.max(1, qpTravelers - 1))
+                      }
+                    >
+                      –
+                    </button>
                     <span>{qpTravelers}</span>
-                    <button onClick={() => setQpTravelers(qpTravelers + 1)}>+</button>
-                    </div>
+                    <button onClick={() => setQpTravelers(qpTravelers + 1)}>
+                      +
+                    </button>
                   </div>
+                </div>
                 <div className="qp-modal-actions">
                   <button
                     className="qp-modal-btn"
@@ -1964,7 +2232,7 @@ const ChatPage: React.FC = () => {
                     "Nghệ thuật",
                     "Giải trí",
                     "Phiêu lưu",
-                    "Tâm linh"
+                    "Tâm linh",
                   ].map((pref) => (
                     <label key={pref} className="qp-checkbox-row">
                       <input
@@ -1974,7 +2242,9 @@ const ChatPage: React.FC = () => {
                           if (e.target.checked) {
                             setQpPreferences([...qpPreferences, pref]);
                           } else {
-                            setQpPreferences(qpPreferences.filter(p => p !== pref));
+                            setQpPreferences(
+                              qpPreferences.filter((p) => p !== pref)
+                            );
                           }
                         }}
                       />
@@ -2112,8 +2382,9 @@ const ChatPage: React.FC = () => {
                           🤖 Trợ lý du lịch AI
                         </h3>
                         <p style={{ margin: 0, opacity: 0.9 }}>
-                          Hãy nói điều bạn muốn: điểm đến, số ngày, ngân sách hay sở thích.
-                          Ví dụ: “Lên lịch trình 3 ngày ở Đà Nẵng cho gia đình, ưu tiên biển và ẩm thực”.
+                          Hãy nói điều bạn muốn: điểm đến, số ngày, ngân sách
+                          hay sở thích. Ví dụ: “Lên lịch trình 3 ngày ở Đà Nẵng
+                          cho gia đình, ưu tiên biển và ẩm thực”.
                         </p>
                       </div>
                     )}
@@ -2301,42 +2572,41 @@ const ChatPage: React.FC = () => {
                 >
                   ✕
                 </button>
-        </div>
+              </div>
 
               {markerDetailLoading ? (
                 <div className="marker-detail-loading">
                   <div className="loading-spinner"></div>
                   <p>Đang tải chi tiết địa điểm...</p>
-      </div>
+                </div>
               ) : selectedMarker ? (
                 <div className="marker-detail-content">
-                  
                   {/* Place Header */}
                   <div className="place-header">
                     <h1 className="place-title">
-                      {selectedMarker.name || selectedMarker.title || "Địa điểm"}
+                      {selectedMarker.name ||
+                        selectedMarker.title ||
+                        "Địa điểm"}
                     </h1>
                     <div className="place-rating">
                       <span className="rating-stars">
                         ★{" "}
-                        {(
-                          selectedMarker.rating?.average ??
-                          selectedMarker.ratingAverage ??
-                          selectedMarker.rating
-                        )?.toFixed(1) || "N/A"}
+                        {typeof markerRatingValue === "number"
+                          ? markerRatingValue.toFixed(1)
+                          : "N/A"}
                       </span>
                       <span className="rating-count">
-                        {(
-                          selectedMarker.rating?.count ??
-                          selectedMarker.ratingCount ??
-                          selectedMarker.userRatingsTotal ??
-                          selectedMarker.user_ratings_total
-                        )?.toLocaleString() || 0}{" "}
+                        {typeof markerRatingCount === "number"
+                          ? markerRatingCount.toLocaleString()
+                          : "0"}{" "}
                         reviews
                       </span>
                     </div>
                     <div className="place-location">
-                      📍 {selectedMarker.address || selectedMarker.formatted_address || "Địa chỉ không có"}
+                      📍{" "}
+                      {selectedMarker.address ||
+                        selectedMarker.formatted_address ||
+                        "Địa chỉ không có"}
                     </div>
                     <div className="place-meta">
                       <span className="place-category">
@@ -2358,30 +2628,41 @@ const ChatPage: React.FC = () => {
                     <div className="place-photos">
                       <h3>Hình ảnh ({selectedMarker.photos.length})</h3>
                       <div className="photos-grid">
-                        {selectedMarker.photos.slice(0, 4).map((photo: any, index: number) => {
-                          const photoUrl = photo.url_medium || photo.url_small || photo;
-                          console.log(`[DEBUG] Photo ${index}:`, { photoUrl, photo });
-                          return (
-                            <img
-                              key={index}
-                              src={photoUrl}
-                              alt={selectedMarker.name}
-                              className="place-photo"
-                              onError={(e) => {
-                                console.log(`[DEBUG] Photo ${index} failed to load:`, photoUrl);
-                                (e.currentTarget as HTMLImageElement).src = 
-                                  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop";
-                              }}
-                            />
-                          );
-                        })}
+                        {selectedMarker.photos
+                          .slice(0, 4)
+                          .map((photo: any, index: number) => {
+                            const photoUrl =
+                              photo.url_medium || photo.url_small || photo;
+                            console.log(`[DEBUG] Photo ${index}:`, {
+                              photoUrl,
+                              photo,
+                            });
+                            return (
+                              <img
+                                key={index}
+                                src={photoUrl}
+                                alt={selectedMarker.name}
+                                className="place-photo"
+                                onError={(e) => {
+                                  console.log(
+                                    `[DEBUG] Photo ${index} failed to load:`,
+                                    photoUrl
+                                  );
+                                  (e.currentTarget as HTMLImageElement).src =
+                                    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop";
+                                }}
+                              />
+                            );
+                          })}
                       </div>
                     </div>
                   ) : (
                     <div className="place-photos">
                       <h3>Hình ảnh</h3>
                       <p>Không có hình ảnh</p>
-                      <p>Debug: photos = {JSON.stringify(selectedMarker.photos)}</p>
+                      <p>
+                        Debug: photos = {JSON.stringify(selectedMarker.photos)}
+                      </p>
                     </div>
                   )}
 
@@ -2394,18 +2675,21 @@ const ChatPage: React.FC = () => {
                   )}
 
                   {/* Amenities */}
-                  {selectedMarker.amenities && selectedMarker.amenities.length > 0 && (
-                    <div className="place-amenities">
-                      <h3>Tiện ích</h3>
-                      <div className="amenities-list">
-                        {selectedMarker.amenities.map((amenity: string, index: number) => (
-                          <span key={index} className="amenity-tag">
-                            {amenity}
-                          </span>
-                        ))}
+                  {selectedMarker.amenities &&
+                    selectedMarker.amenities.length > 0 && (
+                      <div className="place-amenities">
+                        <h3>Tiện ích</h3>
+                        <div className="amenities-list">
+                          {selectedMarker.amenities.map(
+                            (amenity: string, index: number) => (
+                              <span key={index} className="amenity-tag">
+                                {amenity}
+                              </span>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Tips */}
                   {selectedMarker.tips && (
@@ -2440,25 +2724,34 @@ const ChatPage: React.FC = () => {
                   )}
 
                   {/* Reviews */}
-                  {selectedMarker.reviews && selectedMarker.reviews.length > 0 && (
-                    <div className="place-reviews">
-                      <h3>Đánh giá</h3>
-                      <div className="reviews-list">
-                        {selectedMarker.reviews.slice(0, 3).map((review: any, index: number) => (
-                          <div key={index} className="review-item">
-                            <div className="review-header">
-                              <span className="review-author">{review.author_name}</span>
-                              <span className="review-rating">★ {review.rating}</span>
-                            </div>
-                            <p className="review-text">{review.text}</p>
-                            <span className="review-time">
-                              {new Date(review.time * 1000).toLocaleDateString('vi-VN')}
-                            </span>
-                          </div>
-                        ))}
+                  {selectedMarker.reviews &&
+                    selectedMarker.reviews.length > 0 && (
+                      <div className="place-reviews">
+                        <h3>Đánh giá</h3>
+                        <div className="reviews-list">
+                          {selectedMarker.reviews
+                            .slice(0, 3)
+                            .map((review: any, index: number) => (
+                              <div key={index} className="review-item">
+                                <div className="review-header">
+                                  <span className="review-author">
+                                    {review.author_name}
+                                  </span>
+                                  <span className="review-rating">
+                                    ★ {review.rating}
+                                  </span>
+                                </div>
+                                <p className="review-text">{review.text}</p>
+                                <span className="review-time">
+                                  {new Date(
+                                    review.time * 1000
+                                  ).toLocaleDateString("vi-VN")}
+                                </span>
+                              </div>
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Additional Info */}
                   <div className="place-info">
@@ -2476,20 +2769,29 @@ const ChatPage: React.FC = () => {
                         <div className="info-item">
                           <span className="info-label">Giờ mở cửa:</span>
                           <span className="info-value">
-                            {selectedMarker.opening_hours.open_now ? "Đang mở" : "Đã đóng"}
+                            {selectedMarker.opening_hours.open_now
+                              ? "Đang mở"
+                              : "Đã đóng"}
                           </span>
                         </div>
                       )}
                       {selectedMarker.phone && (
                         <div className="info-item">
                           <span className="info-label">Điện thoại:</span>
-                          <span className="info-value">{selectedMarker.phone}</span>
+                          <span className="info-value">
+                            {selectedMarker.phone}
+                          </span>
                         </div>
                       )}
                       {selectedMarker.website && (
                         <div className="info-item">
                           <span className="info-label">Website:</span>
-                          <a href={selectedMarker.website} target="_blank" rel="noopener noreferrer" className="info-link">
+                          <a
+                            href={selectedMarker.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="info-link"
+                          >
                             Xem website
                           </a>
                         </div>

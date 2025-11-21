@@ -1,24 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/profile.css";
 
 // Professional Profile component
 const Profile: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const hardNavigate = (path: string) => {
-    try {
-      navigate(path);
-    } finally {
-      // Fallback đảm bảo component route được mount
-      setTimeout(() => {
-        if (window.location.pathname !== path) {
-          window.location.assign(path);
-        }
-      }, 0);
-    }
-  };
   const [activeSection, setActiveSection] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({

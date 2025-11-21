@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
@@ -26,7 +26,11 @@ const PaymentReturn = () => {
     });
 
     // Check payment status
-    if (payStatus === "PAID" || payStatus === "paid" || payStatus === "success") {
+    if (
+      payStatus === "PAID" ||
+      payStatus === "paid" ||
+      payStatus === "success"
+    ) {
       setStatus("success");
       console.log("[PaymentReturn] Payment successful");
       // Redirect to home immediately on success
@@ -105,4 +109,3 @@ const PaymentReturn = () => {
 };
 
 export default PaymentReturn;
-

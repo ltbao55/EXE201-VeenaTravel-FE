@@ -25,6 +25,7 @@ interface AuthContextType {
   openAuthModal: (mode?: "login" | "register") => void;
   closeAuthModal: () => void;
   switchAuthMode: (mode: "login" | "register") => void;
+  refreshUser: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,7 +90,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setIsLoading(false);
 
               // Redirect to dashboard if user is admin
-              if (userRole === "admin" && window.location.pathname !== "/dashboard") {
+              if (
+                userRole === "admin" &&
+                window.location.pathname !== "/dashboard"
+              ) {
                 window.location.href = "/dashboard";
               }
             } else {
@@ -98,9 +102,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 try {
                   const userData = await AuthService.getCurrentUser();
                   setUser({ ...userData, isGoogleUser: false });
-                  
+
                   // Redirect to dashboard if user is admin and not already there
-                  if (userData.role === "admin" && window.location.pathname !== "/dashboard") {
+                  if (
+                    userData.role === "admin" &&
+                    window.location.pathname !== "/dashboard"
+                  ) {
                     window.location.href = "/dashboard";
                   }
                 } catch (error) {
@@ -142,6 +149,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const authData = await AuthService.login({ email, password });
 
+      console.log("[AuthContext] Login response:", authData);
+      console.log("[AuthContext] User data:", authData.user);
+      console.log("[AuthContext] User role:", authData.user.role);
+
       // Store auth data and update state
       AuthService.storeAuthData(authData);
       setUser(authData.user);
@@ -149,7 +160,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Redirect to dashboard if user is admin
       if (authData.user.role === "admin") {
+        console.log(
+          "[AuthContext] Admin user detected, redirecting to dashboard"
+        );
         window.location.href = "/dashboard";
+      } else {
+        console.log(
+          "[AuthContext] User is not admin, role:",
+          authData.user.role
+        );
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -265,6 +284,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthMode(mode);
   };
 
+  const refreshUser = async (): Promise<User | null> => {
+    try {
+      console.log("[AuthContext] Refreshing user data from backend...");
+      const userData = await AuthService.getCurrentUser();
+      console.log("[AuthContext] Refreshed user data:", userData);
+      console.log("[AuthContext] Refreshed user role:", userData.role);
+
+      // Update user state with fresh data from backend
+      const updatedUser: User = {
+        ...userData,
+        isGoogleUser: user?.isGoogleUser || false,
+      };
+
+      // Update localStorage
+      localStorage.setItem("userData", JSON.stringify(updatedUser));
+
+      // Update state
+      setUser(updatedUser);
+
+      console.log("[AuthContext] ✅ User data refreshed successfully");
+      return updatedUser;
+    } catch (error) {
+      console.error("[AuthContext] Failed to refresh user data:", error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -278,6 +324,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     openAuthModal,
     closeAuthModal,
     switchAuthMode,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

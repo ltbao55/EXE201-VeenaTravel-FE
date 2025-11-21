@@ -42,9 +42,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
         }
         await register(formData.name, formData.email, formData.password);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth error:", error);
-      alert("Có lỗi xảy ra, vui lòng thử lại!");
+      // Display specific error message from backend
+      const errorMessage = error?.message || "Có lỗi xảy ra, vui lòng thử lại!";
+      alert(errorMessage);
     }
   };
 

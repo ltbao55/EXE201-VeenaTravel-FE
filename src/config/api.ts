@@ -1,6 +1,8 @@
+import ENV_CONFIG from "./environment";
+
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: "http://localhost:5001/api",
+  BASE_URL: ENV_CONFIG.API_BASE_URL,
   TIMEOUT: 60000, // Increased to 60 seconds for very slow backend
   HEADERS: {
     "Content-Type": "application/json",

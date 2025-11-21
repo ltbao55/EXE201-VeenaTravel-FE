@@ -6,16 +6,12 @@ import {
   type ExploreCategory,
   type ExplorePlace,
 } from "../services/exploreService";
-import mapsService from "../services/mapsService";
 import "../styles/ExplorePage.css";
 
 const ExplorePage: React.FC = () => {
   const [isContentVisible, setIsContentVisible] = useState<boolean>(true);
   const [query, setQuery] = useState<string>("");
   const [debouncedQuery, setDebouncedQuery] = useState<string>("");
-  const [cityInput, setCityInput] = useState<string>(
-    "Ho Chi Minh City, Vietnam"
-  );
   const [cityLabel, setCityLabel] = useState<string>("Thành phố Hồ Chí Minh");
   const [cityQuery, setCityQuery] = useState<string>(
     "Ho Chi Minh City, Vietnam"
@@ -37,10 +33,10 @@ const ExplorePage: React.FC = () => {
   const [items, setItems] = useState<ExplorePlace[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [sort, setSort] = useState<
+  const [sort, _setSort] = useState<
     "recent" | "rating" | "popular" | "distance"
   >("popular");
-  const [minRating, setMinRating] = useState<number>(0);
+  const [minRating, _setMinRating] = useState<number>(0);
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [source, setSource] = useState<
     "all" | "places" | "partners" | "google"
@@ -53,6 +49,12 @@ const ExplorePage: React.FC = () => {
   const [selectedPlace, setSelectedPlace] = useState<ExplorePlace | null>(null);
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [showDetailSidebar, setShowDetailSidebar] = useState<boolean>(false);
+  const detailRatingValue = selectedPlace
+    ? getRatingValue(selectedPlace)
+    : undefined;
+  const detailRatingCount = selectedPlace
+    ? getRatingCount(selectedPlace)
+    : undefined;
 
   const [cityCenter, setCityCenter] = useState<{ lat: number; lng: number }>({
     lat: 10.7769,
@@ -121,6 +123,38 @@ const ExplorePage: React.FC = () => {
     );
   };
 
+  function getRatingValue(p?: ExplorePlace | null): number | undefined {
+    if (!p) return undefined;
+    if (typeof p.ratingAverage === "number") return p.ratingAverage;
+    const rating = p.rating as
+      | number
+      | { average?: number; count?: number }
+      | undefined;
+    if (typeof rating === "number") return rating;
+    if (rating && typeof rating === "object") {
+      return rating.average;
+    }
+    return undefined;
+  }
+
+  function getRatingCount(p?: ExplorePlace | null): number | undefined {
+    if (!p) return undefined;
+    const rating = p.rating as
+      | { average?: number; count?: number }
+      | number
+      | undefined;
+    if (
+      rating &&
+      typeof rating === "object" &&
+      typeof rating.count === "number"
+    ) {
+      return rating.count;
+    }
+    if (typeof p.ratingCount === "number") return p.ratingCount;
+    if (typeof p.userRatingsTotal === "number") return p.userRatingsTotal;
+    return undefined;
+  }
+
   // Debounce search query
   useEffect(() => {
     const t = setTimeout(() => {
@@ -177,11 +211,10 @@ const ExplorePage: React.FC = () => {
         const wantGeo =
           wantDistance ||
           (typeof maxDistanceKm === "number" && maxDistanceKm > 0);
-        const wantSearch = !!debouncedQuery;
 
         // Map category keys to API category values
         const getApiCategory = (categoryKey: string): string | undefined => {
-          const categoryMap: Record<string, string> = {
+          const categoryMap: Record<string, string | undefined> = {
             for_you: undefined, // Tổng hợp tất cả
             things_to_do: "attraction", // Những mục được yêu thích và thu hút
             restaurant: "restaurant", // Nơi ăn uống
@@ -262,7 +295,7 @@ const ExplorePage: React.FC = () => {
           return location && isFinite(location.lat) && isFinite(location.lng);
         })
         .map((p) => {
-          const location = p?.coordinates || p?.location;
+          const location = (p?.coordinates || p?.location)!;
           return {
             id: p.id,
             lat: location.lat,
@@ -311,11 +344,10 @@ const ExplorePage: React.FC = () => {
       const wantGeo =
         wantDistance ||
         (typeof maxDistanceKm === "number" && maxDistanceKm > 0);
-      const wantSearch = !!debouncedQuery;
 
       // Map category keys to API category values (same logic as above)
       const getApiCategory = (categoryKey: string): string | undefined => {
-        const categoryMap: Record<string, string> = {
+        const categoryMap: Record<string, string | undefined> = {
           for_you: undefined, // Tổng hợp tất cả
           things_to_do: "attraction", // Những mục được yêu thích và thu hút
           restaurant: "restaurant", // Nơi ăn uống
@@ -445,7 +477,6 @@ const ExplorePage: React.FC = () => {
                               setMapZoom(13);
                               setCityLabel(loc.label);
                               setCityQuery(loc.label);
-                              setCityInput(loc.label);
                               setShowLocationDropdown(false);
                             }}
                           >
@@ -531,74 +562,74 @@ const ExplorePage: React.FC = () => {
 
               {/* Grid 3 columns like Mindtrip */}
               <div className="destinations-grid-3">
-                {items.map((place) => (
-                  <div
-                    key={place.id}
-                    className={`destination-card-v2 ${
-                      selectedId === place.id ? "active" : ""
-                    }`}
-                    onClick={() => handlePlaceClick(place)}
-                  >
-                    <div className="card-image-container">
-                      <img
-                        src={
-                          place.photoUrl ||
-                          (place as any).images?.[0] ||
-                          "https://source.unsplash.com/random/800x600?travel"
-                        }
-                        alt={place.name}
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src =
-                            "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop";
-                        }}
-                      />
-                      <div className="card-overlay">
-                        <button className="heart-btn">♡</button>
-                        <button className="add-btn">＋</button>
+                {items.map((place) => {
+                  const ratingValue = getRatingValue(place);
+                  const ratingCount = getRatingCount(place);
+                  return (
+                    <div
+                      key={place.id}
+                      className={`destination-card-v2 ${
+                        selectedId === place.id ? "active" : ""
+                      }`}
+                      onClick={() => handlePlaceClick(place)}
+                    >
+                      <div className="card-image-container">
+                        <img
+                          src={
+                            place.photoUrl ||
+                            (place as any).images?.[0] ||
+                            "https://source.unsplash.com/random/800x600?travel"
+                          }
+                          alt={place.name}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src =
+                              "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop";
+                          }}
+                        />
+                        <div className="card-overlay">
+                          <button className="heart-btn">♡</button>
+                          <button className="add-btn">＋</button>
+                        </div>
+                        <div className="image-dots">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
                       </div>
-                      <div className="image-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                      <div className="card-content">
+                        <h3 className="card-title">{getPlaceName(place)}</h3>
+                        <div className="meta-row">
+                          <span className="meta-item">
+                            🏷 {place.category || place.types?.[0] || "Place"}
+                          </span>
+                          {typeof ratingValue === "number" ? (
+                            <span className="meta-item">
+                              ★ {ratingValue.toFixed(1)}
+                              {typeof ratingCount === "number"
+                                ? ` (${Math.floor(ratingCount / 1000)}k)`
+                                : ""}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="meta-row light">
+                          <span className="meta-item">
+                            📍 {place.address || cityLabel}
+                          </span>
+                          {typeof place.distance === "number" ? (
+                            <span className="meta-item">
+                              📏 {(place.distance / 1000).toFixed(1)} km
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mentions">
+                          Mentioned by {Math.floor(Math.random() * 15) + 5}{" "}
+                          people
+                        </div>
                       </div>
                     </div>
-                    <div className="card-content">
-                      <h3 className="card-title">{getPlaceName(place)}</h3>
-                      <div className="meta-row">
-                        <span className="meta-item">
-                          🏷 {place.category || place.types?.[0] || "Place"}
-                        </span>
-                        {typeof (place.ratingAverage ?? place.rating) ===
-                        "number" ? (
-                          <span className="meta-item">
-                            ★{" "}
-                            {(place.ratingAverage ?? place.rating)?.toFixed(1)}
-                            {place.ratingCount ?? place.userRatingsTotal
-                              ? ` (${Math.floor(
-                                  ((place.ratingCount ??
-                                    place.userRatingsTotal) as number) / 1000
-                                )}k)`
-                              : ""}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="meta-row light">
-                        <span className="meta-item">
-                          📍 {place.address || cityLabel}
-                        </span>
-                        {typeof place.distance === "number" ? (
-                          <span className="meta-item">
-                            📏 {(place.distance / 1000).toFixed(1)} km
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="mentions">
-                        Mentioned by {Math.floor(Math.random() * 15) + 5} people
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -755,18 +786,14 @@ const ExplorePage: React.FC = () => {
                     <div className="place-rating">
                       <span className="rating-stars">
                         ★{" "}
-                        {(
-                          selectedPlace.rating?.average ??
-                          selectedPlace.ratingAverage ??
-                          selectedPlace.rating
-                        )?.toFixed(1)}
+                        {typeof detailRatingValue === "number"
+                          ? detailRatingValue.toFixed(1)
+                          : "--"}
                       </span>
                       <span className="rating-count">
-                        {(
-                          selectedPlace.rating?.count ??
-                          selectedPlace.ratingCount ??
-                          selectedPlace.userRatingsTotal
-                        )?.toLocaleString()}{" "}
+                        {typeof detailRatingCount === "number"
+                          ? detailRatingCount.toLocaleString()
+                          : "--"}{" "}
                         reviews
                       </span>
                     </div>
@@ -904,51 +931,50 @@ const ExplorePage: React.FC = () => {
                     </div>
 
                     {/* Tags */}
-                    {selectedPlace.tags && selectedPlace.tags.length > 0 && (
-                      <div className="place-tags">
-                        <h4>Tags</h4>
-                        <div className="tags-container">
-                          {Array.isArray(selectedPlace.tags)
-                            ? selectedPlace.tags.map((tag, index) => (
-                                <span key={index} className="tag">
-                                  {tag}
-                                </span>
-                              ))
-                            : selectedPlace.tags
-                                .split(",")
-                                .map((tag, index) => (
-                                  <span key={index} className="tag">
-                                    {tag.trim()}
-                                  </span>
-                                ))}
+                    {(() => {
+                      const tags = Array.isArray(selectedPlace.tags)
+                        ? selectedPlace.tags
+                        : typeof selectedPlace.tags === "string"
+                        ? selectedPlace.tags.split(",").map((tag) => tag.trim())
+                        : [];
+                      if (!tags.length) return null;
+                      return (
+                        <div className="place-tags">
+                          <h4>Tags</h4>
+                          <div className="tags-container">
+                            {tags.map((tag, index) => (
+                              <span key={index} className="tag">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Amenities */}
-                    {selectedPlace.amenities &&
-                      selectedPlace.amenities.length > 0 && (
+                    {(() => {
+                      const amenities = Array.isArray(selectedPlace.amenities)
+                        ? selectedPlace.amenities
+                        : typeof selectedPlace.amenities === "string"
+                        ? selectedPlace.amenities
+                            .split(",")
+                            .map((amenity) => amenity.trim())
+                        : [];
+                      if (!amenities.length) return null;
+                      return (
                         <div className="place-amenities">
                           <h4>Tiện ích</h4>
                           <div className="amenities-container">
-                            {Array.isArray(selectedPlace.amenities)
-                              ? selectedPlace.amenities.map(
-                                  (amenity, index) => (
-                                    <span key={index} className="amenity">
-                                      ✓ {amenity}
-                                    </span>
-                                  )
-                                )
-                              : selectedPlace.amenities
-                                  .split(",")
-                                  .map((amenity, index) => (
-                                    <span key={index} className="amenity">
-                                      ✓ {amenity.trim()}
-                                    </span>
-                                  ))}
+                            {amenities.map((amenity, index) => (
+                              <span key={index} className="amenity">
+                                ✓ {amenity}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                      )}
+                      );
+                    })()}
                   </div>
                 </div>
               ) : null}

@@ -136,9 +136,10 @@ class PaymentService {
       );
 
       if (response.success && response.data) {
+        const pagination = (response as any)?.pagination;
         return {
           data: response.data,
-          pagination: response.pagination || {
+          pagination: pagination || {
             current: page,
             pages: 1,
             total: response.data.length,
